@@ -4,5 +4,5 @@ package com.mizo0203.hoshiguma.repo.line.messaging.data;
 public class ReplyMessageData {
 
   public String replyToken;
-  public MessageData[] messages;
+  public MessageObject[] messages;
 }

@@ -3,6 +3,10 @@ package com.mizo0203.hoshiguma.repo;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.SourceData;
 import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 import java.util.logging.Logger;
 
 public class Repository {
@@ -42,6 +46,47 @@ public class Repository {
       return null;
     }
     return config.event_name;
+  }
+
+  public void addCandidateDate(SourceData source, Date candidateDate) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return;
+    }
+    if (config.candidate_dates == null) {
+      config.candidate_dates = new Date[0];
+    }
+    List<Date> candidateDateList = new ArrayList<>(Arrays.asList(config.candidate_dates));
+    candidateDateList.add(candidateDate);
+    config.candidate_dates = candidateDateList.toArray(new Date[candidateDateList.size()]);
+    mOfyRepository.saveLineTalkRoomConfig(config);
+  }
+
+  public Date[] getCandidateDates(SourceData source) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return null;
+    }
+    return config.candidate_dates;
+  }
+
+  public void clearCandidateDate(SourceData source) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return;
+    }
+    config.candidate_dates = null;
+    mOfyRepository.saveLineTalkRoomConfig(config);
+  }
+
+  public void clearEvent(SourceData source) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return;
+    }
+    config.event_name = null;
+    config.candidate_dates = null;
+    mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
   private LineTalkRoomConfig getOrCreateLineTalkRoomConfig(SourceData source) {

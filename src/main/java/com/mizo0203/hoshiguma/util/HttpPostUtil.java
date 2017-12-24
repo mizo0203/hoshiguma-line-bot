@@ -32,11 +32,9 @@ public class HttpPostUtil {
       writer.write(body);
       writer.flush();
       LOG.info("getResponseCode():    " + connection.getResponseCode());
-      LOG.info(
-          "getResponseMessage(): " + connection.getResponseMessage());
+      LOG.info("getResponseMessage(): " + connection.getResponseMessage());
       if (connection.getErrorStream() != null) {
-        LOG.info("getErrorStream(): "
-            + PaserUtil.parseString(connection.getErrorStream()));
+        LOG.info("getErrorStream(): " + PaserUtil.parseString(connection.getErrorStream()));
       }
       if (callback != null) {
         callback.response(connection);

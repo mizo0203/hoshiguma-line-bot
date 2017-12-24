@@ -3,6 +3,7 @@ package com.mizo0203.hoshiguma.repo.objectify.entity;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.mizo0203.hoshiguma.repo.objectify.OfyHelper;
+import java.util.Date;
 
 /**
  * The @Entity tells Objectify about our entity. We also register it in {@link OfyHelper} Our
@@ -21,6 +22,7 @@ public class LineTalkRoomConfig {
   public String key;
 
   public String event_name;
+  public Date[] candidate_dates;
 
   public LineTalkRoomConfig() {
     // Panelist must have a no-arg constructor

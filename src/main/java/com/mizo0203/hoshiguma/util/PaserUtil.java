@@ -2,7 +2,7 @@ package com.mizo0203.hoshiguma.util;
 
 import com.google.gson.Gson;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.ReplyMessageData;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.WebhooksData;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.RequestBody;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,8 +14,8 @@ public class PaserUtil {
   /**
    * @see Gson#fromJson(String, Class)
    */
-  public static WebhooksData parseWebhooksData(String json) {
-    return new Gson().fromJson(json, WebhooksData.class);
+  public static RequestBody parseWebhooksData(String json) {
+    return new Gson().fromJson(json, RequestBody.class);
   }
 
   /**
