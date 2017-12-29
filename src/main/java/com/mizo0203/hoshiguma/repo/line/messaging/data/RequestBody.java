@@ -2,10 +2,7 @@ package com.mizo0203.hoshiguma.repo.line.messaging.data;
 
 import java.util.Arrays;
 
-/**
- * リクエストボディ
- */
-@SuppressWarnings({"unused", "WeakerAccess"})
+/** リクエストボディ */
 public class RequestBody {
 
   public WebHookEventObject[] events;

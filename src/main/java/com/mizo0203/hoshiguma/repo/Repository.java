@@ -3,6 +3,7 @@ package com.mizo0203.hoshiguma.repo;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.SourceData;
 import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -11,8 +12,8 @@ import java.util.logging.Logger;
 
 public class Repository {
 
-  @SuppressWarnings("unused")
   private static final Logger LOG = Logger.getLogger(Repository.class.getName());
+
   private final OfyRepository mOfyRepository;
 
   public Repository() {
@@ -145,5 +146,4 @@ public class Repository {
 
     return keyEntity.value;
   }
-
 }

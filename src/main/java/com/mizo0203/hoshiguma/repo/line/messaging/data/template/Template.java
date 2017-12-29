@@ -7,5 +7,4 @@ public abstract class Template {
   public Template(String type) {
     this.type = type;
   }
-
 }

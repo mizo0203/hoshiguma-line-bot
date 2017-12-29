@@ -1,6 +1,5 @@
 package com.mizo0203.hoshiguma.repo.line.messaging.data.action;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 public class PostBackAction extends Action {
 
   public String label;
@@ -16,5 +15,4 @@ public class PostBackAction extends Action {
     this.label = label;
     return this;
   }
-
 }

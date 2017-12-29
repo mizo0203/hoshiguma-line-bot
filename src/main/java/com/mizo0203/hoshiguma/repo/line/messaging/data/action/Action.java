@@ -7,5 +7,4 @@ public abstract class Action {
   public Action(String type) {
     this.type = type;
   }
-
 }

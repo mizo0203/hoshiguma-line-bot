@@ -1,6 +1,5 @@
 package com.mizo0203.hoshiguma.repo.line.messaging.data.action;
 
-@SuppressWarnings({"unused", "WeakerAccess"})
 public class DateTimePickerAction extends Action {
 
   public String label;
@@ -24,7 +23,8 @@ public class DateTimePickerAction extends Action {
   public enum Mode {
     DATE,
     TIME,
-    DATE_TIME,;
+    DATE_TIME,
+    ;
 
     @Override
     public String toString() {

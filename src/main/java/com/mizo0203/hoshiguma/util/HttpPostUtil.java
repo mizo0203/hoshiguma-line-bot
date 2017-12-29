@@ -11,11 +11,9 @@ import java.util.logging.Logger;
 
 public class HttpPostUtil {
 
-  private final static Logger LOG = Logger
-      .getLogger(HttpPostUtil.class.getName());
+  private static final Logger LOG = Logger.getLogger(HttpPostUtil.class.getName());
 
-  public static void post(URL url, Map<String, String> reqProp, String body,
-      Callback callback) {
+  public static void post(URL url, Map<String, String> reqProp, String body, Callback callback) {
     LOG.info("post url:     " + url);
     LOG.info("post reqProp: " + reqProp);
     LOG.info("post body:    " + body);
@@ -27,8 +25,9 @@ public class HttpPostUtil {
       for (String key : reqProp.keySet()) {
         connection.setRequestProperty(key, reqProp.get(key));
       }
-      BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
-          connection.getOutputStream(), StandardCharsets.UTF_8));
+      BufferedWriter writer =
+          new BufferedWriter(
+              new OutputStreamWriter(connection.getOutputStream(), StandardCharsets.UTF_8));
       writer.write(body);
       writer.flush();
       LOG.info("getResponseCode():    " + connection.getResponseCode());
@@ -48,7 +47,6 @@ public class HttpPostUtil {
     }
   }
 
-  @SuppressWarnings("WeakerAccess")
   public interface Callback {
 
     void response(HttpURLConnection connection);
