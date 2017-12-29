@@ -25,7 +25,7 @@ Copyright 2015 Google Inc.
         <dependency>
             <groupId>com.google.appengine</groupId>
             <artifactId>appengine-api-1.0-sdk</artifactId>
-            <version>1.9.59</version>
+            <version>1.9.60</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -54,8 +54,8 @@ Copyright 2015 Google Inc.
                 <version>3.3</version>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
