@@ -1,6 +1,5 @@
 package com.mizo0203.hoshiguma;
 
-import com.google.appengine.repackaged.com.google.api.client.util.Base64;
 import com.mizo0203.hoshiguma.repo.Repository;
 import com.mizo0203.hoshiguma.repo.State;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.*;
@@ -12,6 +11,7 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
 import com.mizo0203.hoshiguma.util.HttpPostUtil;
 import com.mizo0203.hoshiguma.util.PaserUtil;
+import org.apache.commons.codec.binary.Base64;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

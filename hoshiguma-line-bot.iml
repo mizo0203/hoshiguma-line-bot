@@ -19,5 +19,6 @@
     <orderEntry type="library" name="Maven: com.google.code.gson:gson:2.6.1" level="project" />
     <orderEntry type="library" name="Maven: com.googlecode.objectify:objectify:5.1.10" level="project" />
     <orderEntry type="library" name="Maven: com.google.guava:guava:18.0" level="project" />
+    <orderEntry type="library" name="Maven: commons-codec:commons-codec:1.11" level="project" />
   </component>
 </module>
