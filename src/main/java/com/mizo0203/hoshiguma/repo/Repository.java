@@ -1,5 +1,6 @@
 package com.mizo0203.hoshiguma.repo;
 
+import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.SourceData;
 import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
@@ -16,12 +17,16 @@ public class Repository {
 
   private final OfyRepository mOfyRepository;
 
+  private final LineRepository mLineRepository;
+
   public Repository() {
     mOfyRepository = new OfyRepository();
+    mLineRepository = new LineRepository();
   }
 
   public void destroy() {
     mOfyRepository.destroy();
+    mLineRepository.destroy();
   }
 
   public State getState(SourceData source) {
@@ -41,6 +46,7 @@ public class Repository {
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
+  @SuppressWarnings("unused")
   public String getEventName(SourceData source) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
     if (config == null) {
@@ -113,7 +119,7 @@ public class Repository {
     }
   }
 
-  public String getChannelAccessToken() {
+  private String getChannelAccessToken() {
     KeyEntity keyEntity = mOfyRepository.loadKeyEntity("ChannelAccessToken");
 
     if (keyEntity == null) {
@@ -145,5 +151,16 @@ public class Repository {
     }
 
     return keyEntity.value;
+  }
+
+  /**
+   * 応答メッセージを送る
+   *
+   * @param replyToken Webhook で受信する応答トークン
+   * @param messages 送信するメッセージ (最大件数：5)
+   */
+  public void replyMessage(String replyToken, MessageObject[] messages) {
+    String channelAccessToken = getChannelAccessToken();
+    mLineRepository.replyMessage(channelAccessToken, replyToken, messages);
   }
 }

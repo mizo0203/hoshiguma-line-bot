@@ -9,7 +9,6 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerActi
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
-import com.mizo0203.hoshiguma.util.HttpPostUtil;
 import com.mizo0203.hoshiguma.util.PaserUtil;
 import org.apache.commons.codec.binary.Base64;
 
@@ -20,15 +19,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,19 +33,6 @@ public class HoshigumaLineBotServlet extends HttpServlet {
   private static final Logger LOG = Logger.getLogger(HoshigumaLineBotServlet.class.getName());
 
   private Repository mRepository;
-
-  private void postLine(String body) {
-    try {
-      URL url = new URL("https://api.line.me/v2/bot/message/reply");
-      String channelAccessToken = mRepository.getChannelAccessToken();
-      Map<String, String> reqProp = new HashMap<>();
-      reqProp.put("Content-Type", "application/json");
-      reqProp.put("Authorization", "Bearer " + channelAccessToken);
-      HttpPostUtil.post(url, reqProp, body, null);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
 
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -99,11 +82,9 @@ public class HoshigumaLineBotServlet extends HttpServlet {
 
   private void onLineJoin(WebHookEventObject event) {
     mRepository.clearEvent(event.source);
-    ReplyMessageData replyMessageData = new ReplyMessageData();
-    replyMessageData.replyToken = event.replyToken;
-    replyMessageData.messages = new MessageObject[1];
-    replyMessageData.messages[0] = new TextMessageObject("幹事は任せろ！\nところで何の飲み会だっけ？w");
-    postLine(PaserUtil.toJson(replyMessageData));
+    MessageObject[] messages = new MessageObject[1];
+    messages[0] = new TextMessageObject("幹事は任せろ！\nところで何の飲み会だっけ？w");
+    mRepository.replyMessage(event.replyToken, messages);
   }
 
   private void onLineMessage(WebHookEventObject event) {
@@ -111,20 +92,17 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     if (event.message.text == null) {
       return;
     }
-    ReplyMessageData replyMessageData = new ReplyMessageData();
-    replyMessageData.replyToken = event.replyToken;
     State state = mRepository.getState(event.source);
     switch (state) {
       case NO_EVENT_NAME:
         {
           String event_name = event.message.text.split("\n")[0];
           mRepository.setEventName(event.source, event_name);
-          replyMessageData.messages = new MessageObject[1];
-          replyMessageData.messages[0] =
-              createMessageData("ああ、" + event_name + "だったな！\n早速、日程調整するぞ！！\n候補を教えてくれ！");
+          MessageObject[] messages = new MessageObject[1];
+          messages[0] = createMessageData("ああ、" + event_name + "だったな！\n早速、日程調整するぞ！！\n候補を教えてくれ！");
           // イベント名の修正機能
           // 日程調整機能の ON/OFF 切り替え
-          postLine(PaserUtil.toJson(replyMessageData));
+          mRepository.replyMessage(event.replyToken, messages);
           break;
         }
       case HAS_EVENT_NAME:
@@ -138,8 +116,6 @@ public class HoshigumaLineBotServlet extends HttpServlet {
   }
 
   private void onLinePostBack(WebHookEventObject event) {
-    ReplyMessageData replyMessageData = new ReplyMessageData();
-    replyMessageData.replyToken = event.replyToken;
     switch (event.postback.data) {
       case "data1":
         {
@@ -155,9 +131,9 @@ public class HoshigumaLineBotServlet extends HttpServlet {
             for (Date candidateDate : candidateDates) {
               text.append("\n").append(format2.format(candidateDate));
             }
-            replyMessageData.messages = new MessageObject[1];
-            replyMessageData.messages[0] = new TextMessageObject(text.toString());
-            postLine(PaserUtil.toJson(replyMessageData));
+            MessageObject[] messages = new MessageObject[1];
+            messages[0] = new TextMessageObject(text.toString());
+            mRepository.replyMessage(event.replyToken, messages);
           } catch (ParseException e) {
             e.printStackTrace();
           }
@@ -165,17 +141,17 @@ public class HoshigumaLineBotServlet extends HttpServlet {
         }
       case "data2":
         {
-          replyMessageData.messages = new MessageObject[1];
-          replyMessageData.messages[0] = new TextMessageObject("了解だ！");
-          postLine(PaserUtil.toJson(replyMessageData));
+          MessageObject[] messages = new MessageObject[1];
+          messages[0] = new TextMessageObject("了解だ！");
+          mRepository.replyMessage(event.replyToken, messages);
           break;
         }
       case "data3":
         {
           mRepository.clearCandidateDate(event.source);
-          replyMessageData.messages = new MessageObject[1];
-          replyMessageData.messages[0] = createMessageData("候補をクリアしたぞ！\n改めて候補を教えてくれ！");
-          postLine(PaserUtil.toJson(replyMessageData));
+          MessageObject[] messages = new MessageObject[1];
+          messages[0] = createMessageData("候補をクリアしたぞ！\n改めて候補を教えてくれ！");
+          mRepository.replyMessage(event.replyToken, messages);
           break;
         }
     }
