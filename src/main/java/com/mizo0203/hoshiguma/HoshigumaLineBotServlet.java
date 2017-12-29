@@ -2,13 +2,16 @@ package com.mizo0203.hoshiguma;
 
 import com.mizo0203.hoshiguma.repo.Repository;
 import com.mizo0203.hoshiguma.repo.State;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.*;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.TemplateMessageObject;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.TextMessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.Action;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction.Mode;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.*;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -58,20 +61,13 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       if (requestBody == null) {
         return;
       }
-      for (WebHookEventObject event : requestBody.events) {
-        LOG.info("replyToken: " + event.replyToken);
-        switch (event.type) {
-          case WebHookEventObject.TYPE_JOIN:
-            onLineJoin(event);
-            break;
-          case WebHookEventObject.TYPE_MESSAGE:
-            onLineMessage(event);
-            break;
-          case WebHookEventObject.TYPE_POST_BACK:
-            onLinePostBack(event);
-            break;
-          default:
-            break;
+      for (WebHookEventObject event : requestBody.concreteWebHookEventObject()) {
+        if (event instanceof JoinEvent) {
+          onLineJoin((JoinEvent) event);
+        } else if (event instanceof MessageEvent) {
+          onLineMessage((MessageEvent) event);
+        } else if (event instanceof PostBackEvent) {
+          onLinePostBack((PostBackEvent) event);
         }
       }
     } finally {
@@ -82,29 +78,30 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     }
   }
 
-  private void onLineJoin(WebHookEventObject event) {
-    mRepository.clearEvent(event.source);
+  private void onLineJoin(JoinEvent event) {
+    LOG.info("replyToken: " + event.getReplyToken());
+    mRepository.clearEvent(event.getSource());
     MessageObject[] messages = new MessageObject[1];
     messages[0] = new TextMessageObject("幹事は任せろ！\nところで何の飲み会だっけ？w");
-    mRepository.replyMessage(event.replyToken, messages);
+    mRepository.replyMessage(event.getReplyToken(), messages);
   }
 
-  private void onLineMessage(WebHookEventObject event) {
-    LOG.info("text: " + event.message.text);
-    if (event.message.text == null) {
+  private void onLineMessage(MessageEvent event) {
+    LOG.info("text: " + event.getMessage().text);
+    if (event.getMessage().text == null) {
       return;
     }
-    State state = mRepository.getState(event.source);
+    State state = mRepository.getState(event.getSource());
     switch (state) {
       case NO_EVENT_NAME:
         {
-          String event_name = event.message.text.split("\n")[0];
-          mRepository.setEventName(event.source, event_name);
+          String event_name = event.getMessage().text.split("\n")[0];
+          mRepository.setEventName(event.getSource(), event_name);
           MessageObject[] messages = new MessageObject[1];
           messages[0] = createMessageData("ああ、" + event_name + "だったな！\n早速、日程調整するぞ！！\n候補を教えてくれ！");
           // イベント名の修正機能
           // 日程調整機能の ON/OFF 切り替え
-          mRepository.replyMessage(event.replyToken, messages);
+          mRepository.replyMessage(event.getReplyToken(), messages);
           break;
         }
       case HAS_EVENT_NAME:
@@ -117,17 +114,17 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     }
   }
 
-  private void onLinePostBack(WebHookEventObject event) {
-    switch (event.postback.data) {
+  private void onLinePostBack(PostBackEvent event) {
+    switch (event.getPostBackData()) {
       case "data1":
         {
           SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-          String strDate = event.postback.params.datetime;
+          String strDate = event.getPostBackParams().datetime;
           try {
             Date date = fmt.parse(strDate);
             System.out.println(strDate + "をDateオブジェクトへ変換　→　" + date); // [2]
-            mRepository.addCandidateDate(event.source, date);
-            Date[] candidateDates = mRepository.getCandidateDates(event.source);
+            mRepository.addCandidateDate(event.getSource(), date);
+            Date[] candidateDates = mRepository.getCandidateDates(event.getSource());
             SimpleDateFormat format2 = new SimpleDateFormat("MM/dd(E) HH:mm -");
             StringBuilder text = new StringBuilder("↓候補日時一覧だ！↓");
             for (Date candidateDate : candidateDates) {
@@ -135,7 +132,7 @@ public class HoshigumaLineBotServlet extends HttpServlet {
             }
             MessageObject[] messages = new MessageObject[1];
             messages[0] = new TextMessageObject(text.toString());
-            mRepository.replyMessage(event.replyToken, messages);
+            mRepository.replyMessage(event.getReplyToken(), messages);
           } catch (ParseException e) {
             e.printStackTrace();
           }
@@ -145,15 +142,15 @@ public class HoshigumaLineBotServlet extends HttpServlet {
         {
           MessageObject[] messages = new MessageObject[1];
           messages[0] = new TextMessageObject("了解だ！");
-          mRepository.replyMessage(event.replyToken, messages);
+          mRepository.replyMessage(event.getReplyToken(), messages);
           break;
         }
       case "data3":
         {
-          mRepository.clearCandidateDate(event.source);
+          mRepository.clearCandidateDate(event.getSource());
           MessageObject[] messages = new MessageObject[1];
           messages[0] = createMessageData("候補をクリアしたぞ！\n改めて候補を教えてくれ！");
-          mRepository.replyMessage(event.replyToken, messages);
+          mRepository.replyMessage(event.getReplyToken(), messages);
           break;
         }
     }

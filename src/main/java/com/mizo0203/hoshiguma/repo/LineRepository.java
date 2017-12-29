@@ -2,7 +2,7 @@ package com.mizo0203.hoshiguma.repo;
 
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.ReplyMessageData;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.RequestBody;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.RequestBody;
 import com.mizo0203.hoshiguma.util.HttpPostUtil;
 import com.mizo0203.hoshiguma.util.PaserUtil;
 import org.apache.commons.codec.binary.Base64;

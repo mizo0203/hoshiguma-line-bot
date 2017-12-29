@@ -1,8 +1,8 @@
 package com.mizo0203.hoshiguma.repo;
 
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.RequestBody;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.SourceData;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.RequestBody;
 import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
 

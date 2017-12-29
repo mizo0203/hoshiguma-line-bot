@@ -2,7 +2,7 @@ package com.mizo0203.hoshiguma.util;
 
 import com.google.gson.Gson;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.ReplyMessageData;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.RequestBody;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.RequestBody;
 
 import java.io.BufferedReader;
 import java.io.IOException;
