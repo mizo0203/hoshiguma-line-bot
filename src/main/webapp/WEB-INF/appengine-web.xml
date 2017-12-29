@@ -17,5 +17,6 @@
     <version>YOUR-VERSION-ID</version>
     <threadsafe>true</threadsafe>
     <runtime>java8</runtime>
+    <url-stream-handler>urlfetch</url-stream-handler>
 </appengine-web-app>
         <!-- [END config] -->
