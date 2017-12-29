@@ -33,7 +33,7 @@ public class HttpPostUtil {
       LOG.info("getResponseCode():    " + connection.getResponseCode());
       LOG.info("getResponseMessage(): " + connection.getResponseMessage());
       if (connection.getErrorStream() != null) {
-        LOG.info("getErrorStream(): " + PaserUtil.parseString(connection.getErrorStream()));
+        LOG.severe("getErrorStream(): " + PaserUtil.parseString(connection.getErrorStream()));
       }
       if (callback != null) {
         callback.response(connection);

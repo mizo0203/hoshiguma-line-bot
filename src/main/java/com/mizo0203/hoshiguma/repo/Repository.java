@@ -7,6 +7,7 @@ import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
 
 import javax.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -71,12 +72,25 @@ public class Repository {
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
-  public Date[] getCandidateDates(SourceData source) {
+  private Date[] getCandidateDates(SourceData source) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
     if (config == null) {
       return null;
     }
     return config.candidate_dates;
+  }
+
+  public String[] getCandidateDateStrings(SourceData source) {
+    Date[] candidateDates = getCandidateDates(source);
+    if (candidateDates == null) {
+      return null;
+    }
+    String[] ret = new String[candidateDates.length];
+    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd(E) HH:mm -");
+    for (int i = 0; i < ret.length; i++) {
+      ret[i] = formatter.format(candidateDates[i]);
+    }
+    return ret;
   }
 
   public void clearCandidateDate(SourceData source) {

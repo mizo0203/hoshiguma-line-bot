@@ -10,6 +10,7 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerActi
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction.Mode;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.template.CarouselTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.*;
 
@@ -17,8 +18,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -118,30 +117,26 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     switch (event.getPostBackData()) {
       case "data1":
         {
-          SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-          String strDate = event.getPostBackParams().datetime;
-          try {
-            Date date = fmt.parse(strDate);
-            System.out.println(strDate + "をDateオブジェクトへ変換　→　" + date); // [2]
-            mRepository.addCandidateDate(event.getSource(), date);
-            Date[] candidateDates = mRepository.getCandidateDates(event.getSource());
-            SimpleDateFormat format2 = new SimpleDateFormat("MM/dd(E) HH:mm -");
-            StringBuilder text = new StringBuilder("↓候補日時一覧だ！↓");
-            for (Date candidateDate : candidateDates) {
-              text.append("\n").append(format2.format(candidateDate));
-            }
-            MessageObject[] messages = new MessageObject[1];
-            messages[0] = new TextMessageObject(text.toString());
-            mRepository.replyMessage(event.getReplyToken(), messages);
-          } catch (ParseException e) {
-            e.printStackTrace();
+          Date date = event.getPostBackParams().parseDatetime();
+          mRepository.addCandidateDate(event.getSource(), date);
+          String[] candidateDateStrings = mRepository.getCandidateDateStrings(event.getSource());
+          StringBuilder text = new StringBuilder("↓候補日時一覧だ！↓");
+          for (String candidateDateString : candidateDateStrings) {
+            text.append("\n").append(candidateDateString);
           }
+          MessageObject[] messages = new MessageObject[1];
+          messages[0] = new TextMessageObject(text.toString());
+          mRepository.replyMessage(event.getReplyToken(), messages);
           break;
         }
       case "data2":
         {
-          MessageObject[] messages = new MessageObject[1];
-          messages[0] = new TextMessageObject("了解だ！");
+          MessageObject[] messages = new MessageObject[3];
+          messages[0] = new TextMessageObject("了解だ！\n皆は出欠を入力してくれ！");
+          String[] candidateDateStrings = mRepository.getCandidateDateStrings(event.getSource());
+          messages[1] = createCarouselTemplate(candidateDateStrings);
+          //          MessageObject[] messages = new MessageObject[1];
+          messages[2] = createInputCompletedMessageData();
           mRepository.replyMessage(event.getReplyToken(), messages);
           break;
         }
@@ -153,6 +148,15 @@ public class HoshigumaLineBotServlet extends HttpServlet {
           mRepository.replyMessage(event.getReplyToken(), messages);
           break;
         }
+      case "data4":
+        {
+          MessageObject[] messages = new MessageObject[1];
+          messages[0] = new TextMessageObject("了解だ！");
+          mRepository.replyMessage(event.getReplyToken(), messages);
+          break;
+        }
+      default:
+        break;
     }
   }
 
@@ -162,6 +166,26 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     actions[1] = new PostBackAction("data2").label("候補日時の編集を完了");
     actions[2] = new PostBackAction("data3").label("候補日時をクリア");
     Template template = new ButtonTemplate(text, actions);
+    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
+  }
+
+  private MessageObject createCarouselTemplate(String[] candidateDates) {
+    Action[] actions = new Action[2];
+    actions[0] = new PostBackAction("data4").label("出席");
+    actions[1] = new PostBackAction("data5").label("欠席");
+    CarouselTemplate.ColumnObject[] columns =
+        new CarouselTemplate.ColumnObject[candidateDates.length];
+    for (int i = 0; i < columns.length; i++) {
+      columns[i] = new CarouselTemplate.ColumnObject(candidateDates[i], actions);
+    }
+    Template template = new CarouselTemplate(columns);
+    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
+  }
+
+  private MessageObject createInputCompletedMessageData() {
+    Action[] actions = new Action[1];
+    actions[0] = new PostBackAction("data4").label("入力完了");
+    Template template = new ButtonTemplate("最後に「入力完了」を押してくれ", actions);
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
   }
 }
