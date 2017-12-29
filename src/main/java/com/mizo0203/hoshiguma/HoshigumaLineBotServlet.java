@@ -9,23 +9,14 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerActi
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
-import com.mizo0203.hoshiguma.util.PaserUtil;
-import org.apache.commons.codec.binary.Base64;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SignatureException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class HoshigumaLineBotServlet extends HttpServlet {
@@ -43,23 +34,31 @@ public class HoshigumaLineBotServlet extends HttpServlet {
   }
 
   @Override
-  public void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+  public void doPost(HttpServletRequest req, HttpServletResponse resp) {
+    onLineWebhook(req, resp);
+  }
+
+  /**
+   * LINE Platform からのリクエストを受信
+   *
+   * <p>友だち追加やメッセージの送信のようなイベントがトリガーされると、webhook URL に HTTPS POST リクエストが送信されます。Webhook URL
+   * はチャネルに対してコンソールで設定します。
+   *
+   * <p>リクエストはボットアプリのサーバーで受信および処理されます。
+   *
+   * @param req an {@link HttpServletRequest} object that contains the request the client has made
+   *     of the servlet
+   * @param resp an {@link HttpServletResponse} object that contains the response the servlet sends
+   *     to the client
+   */
+  private void onLineWebhook(HttpServletRequest req, HttpServletResponse resp) {
     mRepository = new Repository();
     try {
-      LOG.info("req: " + req.toString());
-      LOG.info("getHeaderNames: " + req.getHeaderNames());
-      LOG.info("getParameterMap: " + req.getParameterMap());
-      String line = req.getReader().readLine();
-      LOG.info("getReader: " + line);
-      try {
-        String expectSignature = req.getHeader("X-Line-Signature");
-        verifySignature(mRepository.getChannelSecret(), line, expectSignature);
-      } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-        LOG.log(Level.SEVERE, "", e);
+      RequestBody requestBody = mRepository.getRequestBody(req);
+      if (requestBody == null) {
         return;
       }
-      RequestBody webhooks = PaserUtil.parseWebhooksData(line);
-      for (WebHookEventObject event : webhooks.events) {
+      for (WebHookEventObject event : requestBody.events) {
         LOG.info("replyToken: " + event.replyToken);
         switch (event.type) {
           case WebHookEventObject.TYPE_JOIN:
@@ -76,6 +75,9 @@ public class HoshigumaLineBotServlet extends HttpServlet {
         }
       }
     } finally {
+      // ボットアプリのサーバーに webhook から送信される HTTP POST リクエストには、ステータスコード 200 を返す必要があります。
+      // https://developers.line.me/ja/docs/messaging-api/reference/#anchor-99cdae5b4b38ad4b86a137b508fd7b1b861e2366
+      resp.setStatus(HttpServletResponse.SC_OK);
       mRepository.destroy();
     }
   }
@@ -164,20 +166,5 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     actions[2] = new PostBackAction("data3").label("候補日時をクリア");
     Template template = new ButtonTemplate(text, actions);
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
-  }
-
-  private void verifySignature(String channelSecret, String httpRequestBody, String expectSignature)
-      throws NoSuchAlgorithmException, InvalidKeyException, UnsupportedEncodingException,
-          SignatureException {
-    SecretKeySpec key = new SecretKeySpec(channelSecret.getBytes(), "HmacSHA256");
-    Mac mac = Mac.getInstance("HmacSHA256");
-    mac.init(key);
-    byte[] source = httpRequestBody.getBytes("UTF-8");
-    String actualSignature = Base64.encodeBase64String(mac.doFinal(source));
-    // Compare X-Line-Signature request header string and the signature
-    if (actualSignature.equals(expectSignature)) {
-      return;
-    }
-    throw new SignatureException();
   }
 }

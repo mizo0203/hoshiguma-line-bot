@@ -1,10 +1,12 @@
 package com.mizo0203.hoshiguma.repo;
 
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.RequestBody;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.SourceData;
 import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -136,7 +138,7 @@ public class Repository {
     return keyEntity.value;
   }
 
-  public String getChannelSecret() {
+  private String getChannelSecret() {
     KeyEntity keyEntity = mOfyRepository.loadKeyEntity("ChannelSecret");
 
     if (keyEntity == null) {
@@ -162,5 +164,16 @@ public class Repository {
   public void replyMessage(String replyToken, MessageObject[] messages) {
     String channelAccessToken = getChannelAccessToken();
     mLineRepository.replyMessage(channelAccessToken, replyToken, messages);
+  }
+
+  /**
+   * リクエストボディを取得する
+   *
+   * @param req an {@link HttpServletRequest} object that contains the request the client has made
+   *     of the servlet
+   * @return リクエストボディは、webhookイベントオブジェクトの配列を含むJSONオブジェクトです。
+   */
+  public RequestBody getRequestBody(HttpServletRequest req) {
+    return mLineRepository.getRequestBody(getChannelSecret(), req);
   }
 }
