@@ -2,9 +2,9 @@ package com.mizo0203.hoshiguma.repo.line.messaging.data.action;
 
 public class PostBackAction extends Action {
 
-  public String label;
-  public String data;
-  public String text;
+  private final String data;
+  private String text;
+  private String label;
 
   public PostBackAction(String data) {
     super("postback");
@@ -13,6 +13,11 @@ public class PostBackAction extends Action {
 
   public PostBackAction label(String label) {
     this.label = label;
+    return this;
+  }
+
+  public PostBackAction text(String text) {
+    this.text = text;
     return this;
   }
 }

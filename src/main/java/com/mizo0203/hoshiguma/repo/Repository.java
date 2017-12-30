@@ -8,10 +8,9 @@ import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
 
 import javax.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 public class Repository {
@@ -63,12 +62,7 @@ public class Repository {
     if (config == null) {
       return;
     }
-    if (config.candidate_dates == null) {
-      config.candidate_dates = new Date[0];
-    }
-    List<Date> candidateDateList = new ArrayList<>(Arrays.asList(config.candidate_dates));
-    candidateDateList.add(candidateDate);
-    config.candidate_dates = candidateDateList.toArray(new Date[candidateDateList.size()]);
+    config.candidate_dates.add(candidateDate);
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
@@ -77,7 +71,7 @@ public class Repository {
     if (config == null) {
       return null;
     }
-    return config.candidate_dates;
+    return config.candidate_dates.toArray(new Date[config.candidate_dates.size()]);
   }
 
   public String[] getCandidateDateStrings(SourceData source) {
@@ -93,12 +87,28 @@ public class Repository {
     return ret;
   }
 
+  public long[] getCandidateDateTimes(SourceData source) {
+    Date[] candidateDates = getCandidateDates(source);
+    if (candidateDates == null) {
+      return null;
+    }
+    long[] ret = new long[candidateDates.length];
+    for (int i = 0; i < ret.length; i++) {
+      ret[i] = candidateDates[i].getTime();
+    }
+    return ret;
+  }
+
   public void clearCandidateDate(SourceData source) {
+    String key = createLineTalkRoomConfigKey(source);
+    if (key == null) {
+      return;
+    }
+    mOfyRepository.deleteLineTalkRoomConfig(key);
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
     if (config == null) {
       return;
     }
-    config.candidate_dates = null;
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
@@ -189,5 +199,43 @@ public class Repository {
    */
   public RequestBody getRequestBody(HttpServletRequest req) {
     return mLineRepository.getRequestBody(getChannelSecret(), req);
+  }
+
+  public void addMemberCandidateDate(SourceData source, Date candidateDate) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return;
+    }
+    SortedSet<Date> member_candidate_dates =
+        config.member_candidate_dates.computeIfAbsent(source.userId, k -> new TreeSet<>());
+    member_candidate_dates.add(candidateDate);
+    mOfyRepository.saveLineTalkRoomConfig(config);
+  }
+
+  public void removeMemberCandidateDate(SourceData source, Date candidateDate) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return;
+    }
+    SortedSet<Date> member_candidate_dates =
+        config.member_candidate_dates.computeIfAbsent(source.userId, k -> new TreeSet<>());
+    member_candidate_dates.remove(candidateDate);
+    mOfyRepository.saveLineTalkRoomConfig(config);
+  }
+
+  public String[] getMemberCandidateDateStrings(SourceData source) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return null;
+    }
+    SortedSet<Date> member_candidate_dates =
+        config.member_candidate_dates.computeIfAbsent(source.userId, k -> new TreeSet<>());
+    Date[] candidateDates = member_candidate_dates.toArray(new Date[member_candidate_dates.size()]);
+    String[] ret = new String[candidateDates.length];
+    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd(E) HH:mm -");
+    for (int i = 0; i < ret.length; i++) {
+      ret[i] = formatter.format(candidateDates[i]);
+    }
+    return ret;
   }
 }

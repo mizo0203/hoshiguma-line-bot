@@ -4,7 +4,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.mizo0203.hoshiguma.repo.objectify.OfyHelper;
 
-import java.util.Date;
+import java.util.*;
 
 /**
  * The @Entity tells Objectify about our entity. We also register it in {@link OfyHelper} Our
@@ -23,10 +23,14 @@ public class LineTalkRoomConfig {
   @Id public String key;
 
   public String event_name;
-  public Date[] candidate_dates;
+  public SortedSet<Date> candidate_dates;
+  public Map<String, SortedSet<Date>> member_candidate_dates;
 
   public LineTalkRoomConfig() {
-    // Panelist must have a no-arg constructor
+    // LineTalkRoomConfig must have a no-arg constructor
+    event_name = null;
+    candidate_dates = new TreeSet<>();
+    member_candidate_dates = new HashMap<>();
   }
 
   /** A convenience constructor */

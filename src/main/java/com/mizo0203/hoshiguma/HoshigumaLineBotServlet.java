@@ -114,7 +114,8 @@ public class HoshigumaLineBotServlet extends HttpServlet {
   }
 
   private void onLinePostBack(PostBackEvent event) {
-    switch (event.getPostBackData()) {
+    String[] postBackData = event.getPostBackData().split("\n");
+    switch (postBackData[0]) {
       case "data1":
         {
           Date date = event.getPostBackParams().parseDatetime();
@@ -134,7 +135,8 @@ public class HoshigumaLineBotServlet extends HttpServlet {
           MessageObject[] messages = new MessageObject[3];
           messages[0] = new TextMessageObject("了解だ！\n皆は出欠を入力してくれ！");
           String[] candidateDateStrings = mRepository.getCandidateDateStrings(event.getSource());
-          messages[1] = createCarouselTemplate(candidateDateStrings);
+          long[] candidateDateTimes = mRepository.getCandidateDateTimes(event.getSource());
+          messages[1] = createCarouselTemplate(candidateDateStrings, candidateDateTimes);
           //          MessageObject[] messages = new MessageObject[1];
           messages[2] = createInputCompletedMessageData();
           mRepository.replyMessage(event.getReplyToken(), messages);
@@ -151,8 +153,25 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       case "data4":
         {
           MessageObject[] messages = new MessageObject[1];
-          messages[0] = new TextMessageObject("了解だ！");
+          StringBuilder text = new StringBuilder("了解だ！");
+          for (String candidate_date :
+              mRepository.getMemberCandidateDateStrings(event.getSource())) {
+            text.append("\n").append(candidate_date);
+          }
+          messages[0] = new TextMessageObject(text.toString());
           mRepository.replyMessage(event.getReplyToken(), messages);
+          break;
+        }
+      case "data5":
+        {
+          mRepository.addMemberCandidateDate(
+              event.getSource(), new Date(Long.parseLong(postBackData[1])));
+          break;
+        }
+      case "data6":
+        {
+          mRepository.removeMemberCandidateDate(
+              event.getSource(), new Date(Long.parseLong(postBackData[1])));
           break;
         }
       default:
@@ -169,13 +188,13 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
   }
 
-  private MessageObject createCarouselTemplate(String[] candidateDates) {
-    Action[] actions = new Action[2];
-    actions[0] = new PostBackAction("data4").label("出席");
-    actions[1] = new PostBackAction("data5").label("欠席");
+  private MessageObject createCarouselTemplate(String[] candidateDates, long[] candidateDateTimes) {
     CarouselTemplate.ColumnObject[] columns =
         new CarouselTemplate.ColumnObject[candidateDates.length];
     for (int i = 0; i < columns.length; i++) {
+      Action[] actions = new Action[2];
+      actions[0] = new PostBackAction("data5\n" + candidateDateTimes[i]).label("出席");
+      actions[1] = new PostBackAction("data6\n" + candidateDateTimes[i]).label("欠席");
       columns[i] = new CarouselTemplate.ColumnObject(candidateDates[i], actions);
     }
     Template template = new CarouselTemplate(columns);

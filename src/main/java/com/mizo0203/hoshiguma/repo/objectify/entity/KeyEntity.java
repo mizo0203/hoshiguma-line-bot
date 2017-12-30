@@ -23,6 +23,6 @@ public class KeyEntity {
   public String value;
 
   public KeyEntity() {
-    // Panelist must have a no-arg constructor
+    // KeyEntity must have a no-arg constructor
   }
 }
