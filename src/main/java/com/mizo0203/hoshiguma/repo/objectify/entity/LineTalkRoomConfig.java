@@ -20,11 +20,10 @@ import java.util.*;
 @Entity
 public class LineTalkRoomConfig {
 
-  @Id public String key;
-
   public String event_name;
   public SortedSet<Date> candidate_dates;
   public Map<String, SortedSet<Date>> member_candidate_dates;
+  @Id private String source_id;
 
   public LineTalkRoomConfig() {
     // LineTalkRoomConfig must have a no-arg constructor
@@ -34,8 +33,12 @@ public class LineTalkRoomConfig {
   }
 
   /** A convenience constructor */
-  public LineTalkRoomConfig(String key) {
+  public LineTalkRoomConfig(String source_id) {
     this();
-    this.key = key;
+    this.source_id = source_id;
+  }
+
+  public String getSourceId() {
+    return source_id;
   }
 }

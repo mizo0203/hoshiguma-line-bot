@@ -15,8 +15,8 @@ import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
     ObjectifyService.ofy().delete().type(LineTalkRoomConfig.class).id(key).now();
   }
 
-  public LineTalkRoomConfig loadLineTalkRoomConfig(String key) {
-    return ObjectifyService.ofy().load().type(LineTalkRoomConfig.class).id(key).now();
+  public LineTalkRoomConfig loadLineTalkRoomConfig(String source_id) {
+    return ObjectifyService.ofy().load().type(LineTalkRoomConfig.class).id(source_id).now();
   }
 
   public void saveLineTalkRoomConfig(LineTalkRoomConfig entity) {

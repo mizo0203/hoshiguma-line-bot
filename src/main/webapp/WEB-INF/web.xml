@@ -19,6 +19,30 @@
         <servlet-name>RedLINEServlet</servlet-name>
         <url-pattern>/line_hook</url-pattern>
     </servlet-mapping>
+
+    <!-- [START Push Task] -->
+    <!-- https://cloud.google.com/appengine/docs/standard/java/taskqueue/push/ -->
+    <servlet>
+        <servlet-name>reminder_task</servlet-name>
+        <servlet-class>com.mizo0203.hoshiguma.push_task.ReminderTaskServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>reminder_task</servlet-name>
+        <url-pattern>/push_task/reminder_task</url-pattern>
+    </servlet-mapping>
+
+    <!-- https://cloud.google.com/appengine/docs/standard/java/config/cron#securing_urls_for_cron -->
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>push_task</web-resource-name>
+            <url-pattern>/push_task/*</url-pattern>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>admin</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <!-- [END Push Task] -->
+
     <filter>
         <filter-name>ObjectifyFilter</filter-name>
         <filter-class>com.googlecode.objectify.ObjectifyFilter</filter-class>

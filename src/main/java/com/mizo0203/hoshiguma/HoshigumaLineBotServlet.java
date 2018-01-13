@@ -132,6 +132,15 @@ public class HoshigumaLineBotServlet extends HttpServlet {
         }
       case "data2":
         {
+          MessageObject[] messages = new MessageObject[1];
+          messages[0] = createReminderMessageData();
+          mRepository.replyMessage(event.getReplyToken(), messages);
+          break;
+        }
+      case "data21":
+        {
+          Date date = event.getPostBackParams().parseDatetime();
+          mRepository.enqueueReminderTask(event.getSource(), date.getTime());
           MessageObject[] messages = new MessageObject[3];
           messages[0] = new TextMessageObject("了解だ！\n皆は出欠を入力してくれ！");
           String[] candidateDateStrings = mRepository.getCandidateDateStrings(event.getSource());
@@ -185,6 +194,13 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     actions[1] = new PostBackAction("data2").label("候補日時の編集を完了");
     actions[2] = new PostBackAction("data3").label("候補日時をクリア");
     Template template = new ButtonTemplate(text, actions);
+    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
+  }
+
+  private MessageObject createReminderMessageData() {
+    Action[] actions = new Action[1];
+    actions[0] = new DateTimePickerAction("data21", Mode.DATE_TIME).label("リマインダーをセット");
+    Template template = new ButtonTemplate("リマインダーをセットしてくれ！", actions);
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
   }
 

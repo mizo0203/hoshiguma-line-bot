@@ -1,6 +1,7 @@
 package com.mizo0203.hoshiguma.util;
 
 import com.google.gson.Gson;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.PushMessageData;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.ReplyMessageData;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.RequestBody;
 
@@ -20,6 +21,11 @@ public class PaserUtil {
   /** @see Gson#fromJson(String, Class) */
   public static String toJson(ReplyMessageData data) {
     return new Gson().toJson(data, ReplyMessageData.class);
+  }
+
+  /** @see Gson#fromJson(String, Class) */
+  public static String toJson(PushMessageData data) {
+    return new Gson().toJson(data, PushMessageData.class);
   }
 
   private static String parseString(BufferedReader br) throws IOException {

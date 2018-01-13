@@ -16,19 +16,20 @@ import java.util.logging.Logger;
 public class Repository {
 
   private static final Logger LOG = Logger.getLogger(Repository.class.getName());
-
   private final OfyRepository mOfyRepository;
-
   private final LineRepository mLineRepository;
+  private final PushQueueRepository mPushQueueRepository;
 
   public Repository() {
     mOfyRepository = new OfyRepository();
     mLineRepository = new LineRepository();
+    mPushQueueRepository = new PushQueueRepository();
   }
 
   public void destroy() {
     mOfyRepository.destroy();
     mLineRepository.destroy();
+    mPushQueueRepository.destroy();
   }
 
   public State getState(SourceData source) {
@@ -81,6 +82,7 @@ public class Repository {
     }
     String[] ret = new String[candidateDates.length];
     SimpleDateFormat formatter = new SimpleDateFormat("MM/dd(E) HH:mm -");
+    formatter.setTimeZone(Define.LINE_TIME_ZONE);
     for (int i = 0; i < ret.length; i++) {
       ret[i] = formatter.format(candidateDates[i]);
     }
@@ -100,11 +102,11 @@ public class Repository {
   }
 
   public void clearCandidateDate(SourceData source) {
-    String key = createLineTalkRoomConfigKey(source);
-    if (key == null) {
+    String source_id = source.getSourceId();
+    if (source_id == null) {
       return;
     }
-    mOfyRepository.deleteLineTalkRoomConfig(key);
+    mOfyRepository.deleteLineTalkRoomConfig(source_id);
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
     if (config == null) {
       return;
@@ -123,26 +125,16 @@ public class Repository {
   }
 
   private LineTalkRoomConfig getOrCreateLineTalkRoomConfig(SourceData source) {
-    String key = createLineTalkRoomConfigKey(source);
-    if (key == null) {
+    String source_id = source.getSourceId();
+    if (source_id == null) {
       return null;
     }
-    LineTalkRoomConfig config = mOfyRepository.loadLineTalkRoomConfig(key);
+    LineTalkRoomConfig config = mOfyRepository.loadLineTalkRoomConfig(source_id);
     if (config == null) {
-      config = new LineTalkRoomConfig(key);
+      config = new LineTalkRoomConfig(source_id);
       mOfyRepository.saveLineTalkRoomConfig(config);
     }
     return config;
-  }
-
-  private String createLineTalkRoomConfigKey(SourceData source) {
-    if (source.groupId != null) {
-      return "groupId_" + source.groupId;
-    } else if (source.userId != null) {
-      return "userId_" + source.userId;
-    } else {
-      return null;
-    }
   }
 
   private String getChannelAccessToken() {
@@ -191,6 +183,18 @@ public class Repository {
   }
 
   /**
+   * プッシュメッセージを送る
+   *
+   * @param to 送信先のID。Webhookイベントオブジェクトで返される、userId、groupId、またはroomIdの値を使用します。LINEアプリに表示されるLINE
+   *     IDは使用しないでください。
+   * @param messages 送信するメッセージ 最大件数：5
+   */
+  public void pushMessage(String to, MessageObject[] messages) {
+    String channelAccessToken = getChannelAccessToken();
+    mLineRepository.pushMessage(channelAccessToken, to, messages);
+  }
+
+  /**
    * リクエストボディを取得する
    *
    * @param req an {@link HttpServletRequest} object that contains the request the client has made
@@ -207,7 +211,7 @@ public class Repository {
       return;
     }
     SortedSet<Date> member_candidate_dates =
-        config.member_candidate_dates.computeIfAbsent(source.userId, k -> new TreeSet<>());
+        config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     member_candidate_dates.add(candidateDate);
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
@@ -218,7 +222,7 @@ public class Repository {
       return;
     }
     SortedSet<Date> member_candidate_dates =
-        config.member_candidate_dates.computeIfAbsent(source.userId, k -> new TreeSet<>());
+        config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     member_candidate_dates.remove(candidateDate);
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
@@ -229,13 +233,22 @@ public class Repository {
       return null;
     }
     SortedSet<Date> member_candidate_dates =
-        config.member_candidate_dates.computeIfAbsent(source.userId, k -> new TreeSet<>());
+        config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     Date[] candidateDates = member_candidate_dates.toArray(new Date[member_candidate_dates.size()]);
     String[] ret = new String[candidateDates.length];
     SimpleDateFormat formatter = new SimpleDateFormat("MM/dd(E) HH:mm -");
+    formatter.setTimeZone(Define.LINE_TIME_ZONE);
     for (int i = 0; i < ret.length; i++) {
       ret[i] = formatter.format(candidateDates[i]);
     }
     return ret;
+  }
+
+  public void enqueueReminderTask(SourceData source, long etaMillis) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    if (config == null) {
+      return;
+    }
+    mPushQueueRepository.enqueueReminderTask(config.getSourceId(), etaMillis);
   }
 }
