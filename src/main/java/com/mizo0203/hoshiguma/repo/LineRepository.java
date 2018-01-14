@@ -4,7 +4,7 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.PushMessageData;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.ReplyMessageData;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.RequestBody;
-import com.mizo0203.hoshiguma.util.HttpPostUtil;
+import com.mizo0203.hoshiguma.util.HttpUtil;
 import com.mizo0203.hoshiguma.util.PaserUtil;
 import org.apache.commons.codec.binary.Base64;
 
@@ -18,7 +18,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TimeZone;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -30,6 +29,8 @@ import java.util.logging.Logger;
       "https://api.line.me/v2/bot/message/reply";
   private static final String MESSAGING_API_PUSH_MESSAGE_URL_STR =
       "https://api.line.me/v2/bot/message/push";
+  private static final String MESSAGING_API_IDS_MEMBERS_GROUP_URL_STR =
+      "https://api.line.me/v2/bot/group/%s/members/ids";
 
   @SuppressWarnings("EmptyMethod")
   public void destroy() {
@@ -51,18 +52,18 @@ import java.util.logging.Logger;
    * @param replyToken Webhook で受信する応答トークン
    * @param messages 送信するメッセージ (最大件数：5)
    */
-  public void replyMessage(final String channelAccessToken, final String replyToken, final MessageObject[] messages) {
-    final ReplyMessageData replyMessageData = new ReplyMessageData();
+  public void replyMessage(String channelAccessToken, String replyToken, MessageObject[] messages) {
+    ReplyMessageData replyMessageData = new ReplyMessageData();
     replyMessageData.replyToken = replyToken;
     replyMessageData.messages = messages;
-    final String body = PaserUtil.toJson(replyMessageData);
+    String body = PaserUtil.toJson(replyMessageData);
     try {
-      final URL url = new URL(MESSAGING_API_REPLY_MESSAGE_URL_STR);
-      final Map<String, String> reqProp = new HashMap<>();
+      URL url = new URL(MESSAGING_API_REPLY_MESSAGE_URL_STR);
+      Map<String, String> reqProp = new HashMap<>();
       reqProp.put("Content-Type", "application/json");
       reqProp.put("Authorization", "Bearer " + channelAccessToken);
-      HttpPostUtil.post(url, reqProp, body, null);
-    } catch (final IOException e) {
+      HttpUtil.post(url, reqProp, body, null);
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -81,16 +82,41 @@ import java.util.logging.Logger;
    *     IDは使用しないでください。
    * @param messages 送信するメッセージ 最大件数：5
    */
-  public void pushMessage(final String channelAccessToken, final String to, final MessageObject[] messages) {
-    final PushMessageData pushMessageData = new PushMessageData(to, messages);
-    final String body = PaserUtil.toJson(pushMessageData);
+  public void pushMessage(String channelAccessToken, String to, MessageObject[] messages) {
+    PushMessageData pushMessageData = new PushMessageData(to, messages);
+    String body = PaserUtil.toJson(pushMessageData);
     try {
-      final URL url = new URL(MESSAGING_API_PUSH_MESSAGE_URL_STR);
-      final Map<String, String> reqProp = new HashMap<>();
+      URL url = new URL(MESSAGING_API_PUSH_MESSAGE_URL_STR);
+      Map<String, String> reqProp = new HashMap<>();
       reqProp.put("Content-Type", "application/json");
       reqProp.put("Authorization", "Bearer " + channelAccessToken);
-      HttpPostUtil.post(url, reqProp, body, null);
-    } catch (final IOException e) {
+      HttpUtil.post(url, reqProp, body, null);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * グループメンバーのユーザーIDを取得する
+   *
+   * <p>注：この機能は認証済みLINE@アカウントまたは公式アカウントのみでご利用いただけます。詳しくは、LINE@サイトの「LINE@アカウントを作成しましょう」ページまたはLINE
+   * Partnerサイトを参照してください。
+   *
+   * <p>ボットが参加しているグループのメンバーの、ユーザーIDを取得するAPIです。ボットを友だちとして追加していないユーザーや、ボットをブロックしているユーザーのユーザーIDも取得します。
+   *
+   * <p>https://developers.line.me/ja/docs/messaging-api/reference/#anchor-b3c29117f4c090d4c3aabc67516a0092e9e9a3b8
+   *
+   * @param channelAccessToken channel access token
+   * @param groupId グループID。Webhookイベントオブジェクトのsourceオブジェクトで返されます。
+   */
+  public void idsMembersGroup(String channelAccessToken, String groupId) {
+    try {
+      URL url = new URL(String.format(MESSAGING_API_IDS_MEMBERS_GROUP_URL_STR, groupId));
+      Map<String, String> reqProp = new HashMap<>();
+      reqProp.put("Content-Type", "application/json");
+      reqProp.put("Authorization", "Bearer " + channelAccessToken);
+      HttpUtil.get(url, reqProp, null);
+    } catch (IOException e) {
       e.printStackTrace();
     }
   }
@@ -102,18 +128,18 @@ import java.util.logging.Logger;
    *     of the servlet
    * @return リクエストボディは、webhookイベントオブジェクトの配列を含むJSONオブジェクトです。
    */
-  public RequestBody getRequestBody(final String channelSecret, final HttpServletRequest req) {
+  public RequestBody getRequestBody(String channelSecret, HttpServletRequest req) {
     try {
       LOG.info("req: " + req.toString());
       LOG.info("getHeaderNames: " + req.getHeaderNames());
       LOG.info("getParameterMap: " + req.getParameterMap());
-      final String httpRequestBody = req.getReader().readLine();
+      String httpRequestBody = req.getReader().readLine();
       LOG.info("httpRequestBody: " + httpRequestBody);
-      final String expectSignature = req.getHeader("X-Line-Signature");
+      String expectSignature = req.getHeader("X-Line-Signature");
       if (verifySignature(channelSecret, httpRequestBody, expectSignature)) {
         return PaserUtil.parseWebhooksData(httpRequestBody);
       }
-    } catch (final IOException e) {
+    } catch (IOException e) {
       LOG.log(Level.SEVERE, "", e);
     }
     return null;
@@ -127,13 +153,13 @@ import java.util.logging.Logger;
    * @param expectSignature X-Line-Signature request header string
    */
   private boolean verifySignature(
-          final String channelSecret, final String httpRequestBody, final String expectSignature) {
+          String channelSecret, String httpRequestBody, String expectSignature) {
     try {
-      final SecretKeySpec key = new SecretKeySpec(channelSecret.getBytes(), "HmacSHA256");
-      final Mac mac = Mac.getInstance("HmacSHA256");
+      SecretKeySpec key = new SecretKeySpec(channelSecret.getBytes(), "HmacSHA256");
+      Mac mac = Mac.getInstance("HmacSHA256");
       mac.init(key);
-      final byte[] source = httpRequestBody.getBytes("UTF-8");
-      final String actualSignature = Base64.encodeBase64String(mac.doFinal(source));
+      byte[] source = httpRequestBody.getBytes("UTF-8");
+      String actualSignature = Base64.encodeBase64String(mac.doFinal(source));
       // Compare X-Line-Signature request header string and the signature
       if (actualSignature.equals(expectSignature)) {
         return true;

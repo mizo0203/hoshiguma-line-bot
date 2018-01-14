@@ -195,6 +195,17 @@ public class Repository {
   }
 
   /**
+   * グループメンバーのユーザーIDを取得する
+   *
+   * @param groupId グループID。Webhookイベントオブジェクトのsourceオブジェクトで返されます。
+   */
+  @SuppressWarnings("unused")
+  public void idsMembersGroup(String groupId) {
+    String channelAccessToken = getChannelAccessToken();
+    mLineRepository.idsMembersGroup(channelAccessToken, groupId);
+  }
+
+  /**
    * リクエストボディを取得する
    *
    * @param req an {@link HttpServletRequest} object that contains the request the client has made
