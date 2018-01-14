@@ -15,9 +15,7 @@
 
 package com.mizo0203.hoshiguma.push_task;
 
-import com.mizo0203.hoshiguma.repo.Repository;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.TextMessageObject;
+import com.mizo0203.hoshiguma.UseCase;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -27,19 +25,17 @@ import java.util.logging.Logger;
 public class ReminderTaskServlet extends HttpServlet {
   public static final String PARAM_NAME_SOURCE_ID = "param_name_source_id";
   private static final Logger LOG = Logger.getLogger(ReminderTaskServlet.class.getName());
-  private Repository mRepository;
+  private UseCase mUseCase;
 
   @Override
   protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-    mRepository = new Repository();
+    mUseCase = new UseCase();
     try {
       String source_id = req.getParameter(PARAM_NAME_SOURCE_ID);
       LOG.info("ReminderTaskServlet is processing " + source_id);
-      MessageObject[] messages = new MessageObject[1];
-      messages[0] = new TextMessageObject("リマインダーだ！\nもし、出欠入力がまだなら入力してくれ！");
-      mRepository.pushMessage(source_id, messages);
+      mUseCase.remindCandidateDates(source_id);
     } finally {
-      mRepository.destroy();
+      mUseCase.destroy();
     }
   }
 }

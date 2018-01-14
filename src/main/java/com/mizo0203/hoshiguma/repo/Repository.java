@@ -33,7 +33,7 @@ public class Repository {
   }
 
   public State getState(SourceData source) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return null;
     }
@@ -41,7 +41,7 @@ public class Repository {
   }
 
   public void setEventName(SourceData source, String event_name) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return;
     }
@@ -51,7 +51,7 @@ public class Repository {
 
   @SuppressWarnings("unused")
   public String getEventName(SourceData source) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return null;
     }
@@ -59,7 +59,7 @@ public class Repository {
   }
 
   public void addCandidateDate(SourceData source, Date candidateDate) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return;
     }
@@ -67,8 +67,8 @@ public class Repository {
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
-  private Date[] getCandidateDates(SourceData source) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+  public Date[] getCandidateDates(String source_id) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source_id);
     if (config == null) {
       return null;
     }
@@ -76,27 +76,15 @@ public class Repository {
   }
 
   public String[] getCandidateDateStrings(SourceData source) {
-    Date[] candidateDates = getCandidateDates(source);
+    Date[] candidateDates = getCandidateDates(source.getSourceId());
     if (candidateDates == null) {
       return null;
     }
     String[] ret = new String[candidateDates.length];
-    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd(E) HH:mm -");
+    SimpleDateFormat formatter = new SimpleDateFormat(Define.DATE_FORMAT_PATTERN);
     formatter.setTimeZone(Define.LINE_TIME_ZONE);
     for (int i = 0; i < ret.length; i++) {
       ret[i] = formatter.format(candidateDates[i]);
-    }
-    return ret;
-  }
-
-  public long[] getCandidateDateTimes(SourceData source) {
-    Date[] candidateDates = getCandidateDates(source);
-    if (candidateDates == null) {
-      return null;
-    }
-    long[] ret = new long[candidateDates.length];
-    for (int i = 0; i < ret.length; i++) {
-      ret[i] = candidateDates[i].getTime();
     }
     return ret;
   }
@@ -107,7 +95,7 @@ public class Repository {
       return;
     }
     mOfyRepository.deleteLineTalkRoomConfig(source_id);
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return;
     }
@@ -115,7 +103,7 @@ public class Repository {
   }
 
   public void clearEvent(SourceData source) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return;
     }
@@ -124,11 +112,7 @@ public class Repository {
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
-  private LineTalkRoomConfig getOrCreateLineTalkRoomConfig(SourceData source) {
-    String source_id = source.getSourceId();
-    if (source_id == null) {
-      return null;
-    }
+  private LineTalkRoomConfig getOrCreateLineTalkRoomConfig(String source_id) {
     LineTalkRoomConfig config = mOfyRepository.loadLineTalkRoomConfig(source_id);
     if (config == null) {
       config = new LineTalkRoomConfig(source_id);
@@ -217,7 +201,7 @@ public class Repository {
   }
 
   public void addMemberCandidateDate(SourceData source, Date candidateDate) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return;
     }
@@ -228,7 +212,7 @@ public class Repository {
   }
 
   public void removeMemberCandidateDate(SourceData source, Date candidateDate) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return;
     }
@@ -239,7 +223,7 @@ public class Repository {
   }
 
   public String[] getMemberCandidateDateStrings(SourceData source) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return null;
     }
@@ -247,7 +231,7 @@ public class Repository {
         config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     Date[] candidateDates = member_candidate_dates.toArray(new Date[member_candidate_dates.size()]);
     String[] ret = new String[candidateDates.length];
-    SimpleDateFormat formatter = new SimpleDateFormat("MM/dd(E) HH:mm -");
+    SimpleDateFormat formatter = new SimpleDateFormat(Define.DATE_FORMAT_PATTERN);
     formatter.setTimeZone(Define.LINE_TIME_ZONE);
     for (int i = 0; i < ret.length; i++) {
       ret[i] = formatter.format(candidateDates[i]);
@@ -256,7 +240,7 @@ public class Repository {
   }
 
   public void enqueueReminderTask(SourceData source, long etaMillis) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
     if (config == null) {
       return;
     }

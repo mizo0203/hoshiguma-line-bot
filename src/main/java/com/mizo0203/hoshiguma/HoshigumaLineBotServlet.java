@@ -10,7 +10,6 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerActi
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction.Mode;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.template.CarouselTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.*;
 
@@ -25,7 +24,8 @@ public class HoshigumaLineBotServlet extends HttpServlet {
 
   private static final Logger LOG = Logger.getLogger(HoshigumaLineBotServlet.class.getName());
 
-  private Repository mRepository;
+  private UseCase mUseCase;
+  @Deprecated private Repository mRepository;
 
   @Override
   public void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -55,6 +55,7 @@ public class HoshigumaLineBotServlet extends HttpServlet {
    */
   private void onLineWebhook(HttpServletRequest req, HttpServletResponse resp) {
     mRepository = new Repository();
+    mUseCase = new UseCase(mRepository);
     try {
       RequestBody requestBody = mRepository.getRequestBody(req);
       if (requestBody == null) {
@@ -73,7 +74,7 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       // ボットアプリのサーバーに webhook から送信される HTTP POST リクエストには、ステータスコード 200 を返す必要があります。
       // https://developers.line.me/ja/docs/messaging-api/reference/#anchor-99cdae5b4b38ad4b86a137b508fd7b1b861e2366
       resp.setStatus(HttpServletResponse.SC_OK);
-      mRepository.destroy();
+      mUseCase.destroy();
     }
   }
 
@@ -141,14 +142,7 @@ public class HoshigumaLineBotServlet extends HttpServlet {
         {
           Date date = event.getPostBackParams().parseDatetime();
           mRepository.enqueueReminderTask(event.getSource(), date.getTime());
-          MessageObject[] messages = new MessageObject[3];
-          messages[0] = new TextMessageObject("了解だ！\n皆は出欠を入力してくれ！");
-          String[] candidateDateStrings = mRepository.getCandidateDateStrings(event.getSource());
-          long[] candidateDateTimes = mRepository.getCandidateDateTimes(event.getSource());
-          messages[1] = createCarouselTemplate(candidateDateStrings, candidateDateTimes);
-          //          MessageObject[] messages = new MessageObject[1];
-          messages[2] = createInputCompletedMessageData();
-          mRepository.replyMessage(event.getReplyToken(), messages);
+          mUseCase.replyCandidateDates(event.getSource().getSourceId(), event.getReplyToken());
           break;
         }
       case "data3":
@@ -201,26 +195,6 @@ public class HoshigumaLineBotServlet extends HttpServlet {
     Action[] actions = new Action[1];
     actions[0] = new DateTimePickerAction("data21", Mode.DATE_TIME).label("リマインダーをセット");
     Template template = new ButtonTemplate("リマインダーをセットしてくれ！", actions);
-    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
-  }
-
-  private MessageObject createCarouselTemplate(String[] candidateDates, long[] candidateDateTimes) {
-    CarouselTemplate.ColumnObject[] columns =
-        new CarouselTemplate.ColumnObject[candidateDates.length];
-    for (int i = 0; i < columns.length; i++) {
-      Action[] actions = new Action[2];
-      actions[0] = new PostBackAction("data5\n" + candidateDateTimes[i]).label("出席");
-      actions[1] = new PostBackAction("data6\n" + candidateDateTimes[i]).label("欠席");
-      columns[i] = new CarouselTemplate.ColumnObject(candidateDates[i], actions);
-    }
-    Template template = new CarouselTemplate(columns);
-    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
-  }
-
-  private MessageObject createInputCompletedMessageData() {
-    Action[] actions = new Action[1];
-    actions[0] = new PostBackAction("data4").label("入力完了");
-    Template template = new ButtonTemplate("最後に「入力完了」を押してくれ", actions);
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
   }
 }
