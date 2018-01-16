@@ -246,4 +246,12 @@ public class Repository {
     }
     mPushQueueRepository.enqueueReminderTask(config.getSourceId(), etaMillis);
   }
+
+  public void enqueueCloseTask(SourceData source, long etaMillis) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
+    if (config == null) {
+      return;
+    }
+    mPushQueueRepository.enqueueCloseTask(config.getSourceId(), etaMillis);
+  }
 }

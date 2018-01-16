@@ -30,6 +30,14 @@
         <servlet-name>reminder_task</servlet-name>
         <url-pattern>/push_task/reminder_task</url-pattern>
     </servlet-mapping>
+    <servlet>
+        <servlet-name>close_task</servlet-name>
+        <servlet-class>com.mizo0203.hoshiguma.push_task.CloseTaskServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>close_task</servlet-name>
+        <url-pattern>/push_task/close_task</url-pattern>
+    </servlet-mapping>
 
     <!-- https://cloud.google.com/appengine/docs/standard/java/config/cron#securing_urls_for_cron -->
     <security-constraint>

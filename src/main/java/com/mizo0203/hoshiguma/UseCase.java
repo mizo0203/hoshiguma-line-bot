@@ -54,6 +54,13 @@ public class UseCase {
     mRepository.pushMessage(source_id, messages);
   }
 
+  /** 日程調整を締め切る */
+  public void closeCandidateDates(String source_id) {
+    MessageObject[] messages = new MessageObject[1];
+    messages[0] = new TextMessageObject("締め切りだ！");
+    mRepository.pushMessage(source_id, messages);
+  }
+
   private MessageObject createCarouselTemplate(String source_id) {
     Date[] candidateDates = mRepository.getCandidateDates(source_id);
     CarouselTemplate.ColumnObject[] columns =

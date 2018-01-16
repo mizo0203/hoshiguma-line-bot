@@ -28,4 +28,12 @@ import java.util.logging.Logger;
             .param(ReminderTaskServlet.PARAM_NAME_SOURCE_ID, source_id)
             .etaMillis(etaMillis));
   }
+
+  protected void enqueueCloseTask(String source_id, long etaMillis) {
+    LOG.info("enqueueCloseTask");
+    mQueue.add(
+        TaskOptions.Builder.withUrl("/push_task/close_task")
+            .param(ReminderTaskServlet.PARAM_NAME_SOURCE_ID, source_id)
+            .etaMillis(etaMillis));
+  }
 }
