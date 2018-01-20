@@ -1,6 +1,5 @@
-package com.mizo0203.hoshiguma;
+package com.mizo0203.hoshiguma.domain;
 
-import com.mizo0203.hoshiguma.repo.Define;
 import com.mizo0203.hoshiguma.repo.Repository;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.TemplateMessageObject;
@@ -11,25 +10,21 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.CarouselTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class UseCase {
-  private final DateFormat mDateFormat;
   private final Repository mRepository;
+  private final Translator mTranslator;
 
   public UseCase() {
     mRepository = new Repository();
-    mDateFormat = new SimpleDateFormat(Define.DATE_FORMAT_PATTERN);
-    mDateFormat.setTimeZone(Define.LINE_TIME_ZONE);
+    mTranslator = new Translator();
   }
 
   @Deprecated
-  UseCase(Repository repository) {
+  public UseCase(Repository repository) {
     mRepository = repository;
-    mDateFormat = new SimpleDateFormat(Define.DATE_FORMAT_PATTERN);
-    mDateFormat.setTimeZone(Define.LINE_TIME_ZONE);
+    mTranslator = new Translator();
   }
 
   public void destroy() {
@@ -69,7 +64,8 @@ public class UseCase {
       Action[] actions = new Action[2];
       actions[0] = new PostBackAction("data5\n" + candidateDates[i].getTime()).label("出席");
       actions[1] = new PostBackAction("data6\n" + candidateDates[i].getTime()).label("欠席");
-      columns[i] = new CarouselTemplate.ColumnObject(formatDate(candidateDates[i]), actions);
+      columns[i] =
+          new CarouselTemplate.ColumnObject(mTranslator.formatDate(candidateDates[i]), actions);
     }
     Template template = new CarouselTemplate(columns);
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
@@ -80,9 +76,5 @@ public class UseCase {
     actions[0] = new PostBackAction("data4").label("入力完了");
     Template template = new ButtonTemplate("最後に「入力完了」を押してくれ", actions);
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
-  }
-
-  private String formatDate(Date date) {
-    return mDateFormat.format(date);
   }
 }

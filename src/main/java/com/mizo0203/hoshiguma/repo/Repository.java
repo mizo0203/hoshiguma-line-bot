@@ -1,5 +1,6 @@
 package com.mizo0203.hoshiguma.repo;
 
+import com.mizo0203.hoshiguma.domain.Translator;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.SourceData;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.RequestBody;
@@ -7,7 +8,6 @@ import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -19,11 +19,13 @@ public class Repository {
   private final OfyRepository mOfyRepository;
   private final LineRepository mLineRepository;
   private final PushQueueRepository mPushQueueRepository;
+  private final Translator mTranslator;
 
   public Repository() {
     mOfyRepository = new OfyRepository();
     mLineRepository = new LineRepository();
     mPushQueueRepository = new PushQueueRepository();
+    mTranslator = new Translator();
   }
 
   public void destroy() {
@@ -81,10 +83,8 @@ public class Repository {
       return null;
     }
     String[] ret = new String[candidateDates.length];
-    SimpleDateFormat formatter = new SimpleDateFormat(Define.DATE_FORMAT_PATTERN);
-    formatter.setTimeZone(Define.LINE_TIME_ZONE);
     for (int i = 0; i < ret.length; i++) {
-      ret[i] = formatter.format(candidateDates[i]);
+      ret[i] = mTranslator.formatDate(candidateDates[i]);
     }
     return ret;
   }
@@ -231,10 +231,8 @@ public class Repository {
         config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     Date[] candidateDates = member_candidate_dates.toArray(new Date[member_candidate_dates.size()]);
     String[] ret = new String[candidateDates.length];
-    SimpleDateFormat formatter = new SimpleDateFormat(Define.DATE_FORMAT_PATTERN);
-    formatter.setTimeZone(Define.LINE_TIME_ZONE);
     for (int i = 0; i < ret.length; i++) {
-      ret[i] = formatter.format(candidateDates[i]);
+      ret[i] = mTranslator.formatDate(candidateDates[i]);
     }
     return ret;
   }

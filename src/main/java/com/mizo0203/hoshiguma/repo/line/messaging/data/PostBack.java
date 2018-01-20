@@ -1,6 +1,6 @@
 package com.mizo0203.hoshiguma.repo.line.messaging.data;
 
-import com.mizo0203.hoshiguma.repo.Define;
+import com.mizo0203.hoshiguma.domain.Define;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

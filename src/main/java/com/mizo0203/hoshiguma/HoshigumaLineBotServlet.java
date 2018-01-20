@@ -1,5 +1,6 @@
 package com.mizo0203.hoshiguma;
 
+import com.mizo0203.hoshiguma.domain.UseCase;
 import com.mizo0203.hoshiguma.repo.Repository;
 import com.mizo0203.hoshiguma.repo.State;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;

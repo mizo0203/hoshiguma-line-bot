@@ -1,4 +1,4 @@
-package com.mizo0203.hoshiguma.repo;
+package com.mizo0203.hoshiguma.domain;
 
 import java.util.TimeZone;
 
@@ -7,4 +7,6 @@ public class Define {
   public static final TimeZone LINE_TIME_ZONE = TimeZone.getTimeZone("Asia/Tokyo");
 
   public static final String DATE_FORMAT_PATTERN = "MM/dd(E) HH:mm -";
+
+  public static final String DATE_JST = "(JST)";
 }

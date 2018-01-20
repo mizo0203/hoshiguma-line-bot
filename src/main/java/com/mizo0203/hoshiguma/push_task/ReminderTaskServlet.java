@@ -15,7 +15,7 @@
 
 package com.mizo0203.hoshiguma.push_task;
 
-import com.mizo0203.hoshiguma.UseCase;
+import com.mizo0203.hoshiguma.domain.UseCase;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
