@@ -36,17 +36,11 @@ public class Repository {
 
   public State getState(SourceData source) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return null;
-    }
     return config.event_name != null ? State.HAS_EVENT_NAME : State.NO_EVENT_NAME;
   }
 
   public void setEventName(SourceData source, String event_name) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return;
-    }
     config.event_name = event_name;
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
@@ -54,26 +48,17 @@ public class Repository {
   @SuppressWarnings("unused")
   public String getEventName(SourceData source) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return null;
-    }
     return config.event_name;
   }
 
   public void addCandidateDate(SourceData source, Date candidateDate) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return;
-    }
     config.candidate_dates.add(candidateDate);
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
   public Date[] getCandidateDates(String source_id) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source_id);
-    if (config == null) {
-      return null;
-    }
     return config.candidate_dates.toArray(new Date[config.candidate_dates.size()]);
   }
 
@@ -90,29 +75,19 @@ public class Repository {
   }
 
   public void clearCandidateDate(String sourceId) {
-    mOfyRepository.deleteLineTalkRoomConfig(sourceId);
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(sourceId);
-    if (config == null) {
-      return;
-    }
+    config.candidate_dates = null;
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
-  public void clearEvent(SourceData source) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return;
-    }
-    config.event_name = null;
-    config.candidate_dates = null;
-    mOfyRepository.saveLineTalkRoomConfig(config);
+  public void clearLineTalkRoomConfig(String sourceId) {
+    mOfyRepository.deleteLineTalkRoomConfig(sourceId);
   }
 
   private LineTalkRoomConfig getOrCreateLineTalkRoomConfig(String source_id) {
     LineTalkRoomConfig config = mOfyRepository.loadLineTalkRoomConfig(source_id);
     if (config == null) {
       config = new LineTalkRoomConfig(source_id);
-      mOfyRepository.saveLineTalkRoomConfig(config);
     }
     return config;
   }
@@ -198,9 +173,6 @@ public class Repository {
 
   public void addMemberCandidateDate(SourceData source, Date candidateDate) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return;
-    }
     SortedSet<Date> member_candidate_dates =
         config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     member_candidate_dates.add(candidateDate);
@@ -209,9 +181,6 @@ public class Repository {
 
   public void removeMemberCandidateDate(SourceData source, Date candidateDate) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return;
-    }
     SortedSet<Date> member_candidate_dates =
         config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     member_candidate_dates.remove(candidateDate);
@@ -220,9 +189,6 @@ public class Repository {
 
   public String[] getMemberCandidateDateStrings(SourceData source) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return null;
-    }
     SortedSet<Date> member_candidate_dates =
         config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
     Date[] candidateDates = member_candidate_dates.toArray(new Date[member_candidate_dates.size()]);
@@ -235,17 +201,11 @@ public class Repository {
 
   public void enqueueReminderTask(SourceData source, long etaMillis) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return;
-    }
     mPushQueueRepository.enqueueReminderTask(config.getSourceId(), etaMillis);
   }
 
   public void enqueueCloseTask(SourceData source, long etaMillis) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
-    if (config == null) {
-      return;
-    }
     mPushQueueRepository.enqueueCloseTask(config.getSourceId(), etaMillis);
   }
 }

@@ -80,7 +80,7 @@ public class HoshigumaLineBotServlet extends HttpServlet {
 
   private void onLineJoin(JoinEvent event) {
     LOG.info("replyToken: " + event.getReplyToken());
-    mRepository.clearEvent(event.getSource());
+    mRepository.clearLineTalkRoomConfig(event.getSource().getSourceId());
     MessageObject[] messages = new MessageObject[1];
     messages[0] = new TextMessageObject("幹事は任せろ！\nところで何の飲み会だっけ？w");
     mRepository.replyMessage(event.getReplyToken(), messages);
