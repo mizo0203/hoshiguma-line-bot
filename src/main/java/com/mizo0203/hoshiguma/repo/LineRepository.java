@@ -153,7 +153,7 @@ import java.util.logging.Logger;
    * @param expectSignature X-Line-Signature request header string
    */
   private boolean verifySignature(
-          String channelSecret, String httpRequestBody, String expectSignature) {
+      String channelSecret, String httpRequestBody, String expectSignature) {
     try {
       SecretKeySpec key = new SecretKeySpec(channelSecret.getBytes(), "HmacSHA256");
       Mac mac = Mac.getInstance("HmacSHA256");

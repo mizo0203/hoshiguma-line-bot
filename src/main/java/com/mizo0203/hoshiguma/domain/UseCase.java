@@ -5,6 +5,7 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.TemplateMessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.TextMessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.Action;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.CarouselTemplate;
@@ -76,5 +77,28 @@ public class UseCase {
     actions[0] = new PostBackAction("data4").label("入力完了");
     Template template = new ButtonTemplate("最後に「入力完了」を押してくれ", actions);
     return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
+  }
+
+  public void replyRequestAdditionCandidateDateMessage(String replyToken, String text) {
+    mRepository.replyMessage(
+        replyToken,
+        new MessageObject[] {
+          createRequestAdditionCandidateDateMessageObject(text),
+        });
+  }
+
+  private MessageObject createRequestAdditionCandidateDateMessageObject(String text) {
+    Action[] actions = new Action[3];
+    actions[0] =
+        new DateTimePickerAction("data1", DateTimePickerAction.Mode.DATE_TIME)
+            .label("候補日時を追加(最大10)");
+    actions[1] = new PostBackAction("data2").label("候補日時の編集を完了");
+    actions[2] = new PostBackAction("data3").label("候補日時をクリア");
+    Template template = new ButtonTemplate(text, actions);
+    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
+  }
+
+  public void clearCandidateDate(String sourceId) {
+    mRepository.clearCandidateDate(sourceId);
   }
 }

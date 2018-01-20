@@ -9,7 +9,6 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.TextMessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.Action;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction.Mode;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.webHook.event.*;
@@ -98,11 +97,10 @@ public class HoshigumaLineBotServlet extends HttpServlet {
         {
           String event_name = event.getMessage().text.split("\n")[0];
           mRepository.setEventName(event.getSource(), event_name);
-          MessageObject[] messages = new MessageObject[1];
-          messages[0] = createMessageData("ああ、" + event_name + "だったな！\n早速、日程調整するぞ！！\n候補を教えてくれ！");
           // イベント名の修正機能
           // 日程調整機能の ON/OFF 切り替え
-          mRepository.replyMessage(event.getReplyToken(), messages);
+          mUseCase.replyRequestAdditionCandidateDateMessage(
+              event.getReplyToken(), "ああ、" + event_name + "だったな！\n早速、日程調整するぞ！！\n候補を教えてくれ！");
           break;
         }
       case HAS_EVENT_NAME:
@@ -157,10 +155,9 @@ public class HoshigumaLineBotServlet extends HttpServlet {
         }
       case "data3":
         {
-          mRepository.clearCandidateDate(event.getSource());
-          MessageObject[] messages = new MessageObject[1];
-          messages[0] = createMessageData("候補をクリアしたぞ！\n改めて候補を教えてくれ！");
-          mRepository.replyMessage(event.getReplyToken(), messages);
+          mUseCase.clearCandidateDate(event.getSource().getSourceId());
+          mUseCase.replyRequestAdditionCandidateDateMessage(
+              event.getReplyToken(), "候補をクリアしたぞ！\n改めて候補を教えてくれ！");
           break;
         }
       case "data4":
@@ -190,15 +187,6 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       default:
         break;
     }
-  }
-
-  private MessageObject createMessageData(String text) {
-    Action[] actions = new Action[3];
-    actions[0] = new DateTimePickerAction("data1", Mode.DATE_TIME).label("候補日時を追加(最大10)");
-    actions[1] = new PostBackAction("data2").label("候補日時の編集を完了");
-    actions[2] = new PostBackAction("data3").label("候補日時をクリア");
-    Template template = new ButtonTemplate(text, actions);
-    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
   }
 
   private MessageObject createReminderMessageData() {

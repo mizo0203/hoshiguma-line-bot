@@ -89,13 +89,9 @@ public class Repository {
     return ret;
   }
 
-  public void clearCandidateDate(SourceData source) {
-    String source_id = source.getSourceId();
-    if (source_id == null) {
-      return;
-    }
-    mOfyRepository.deleteLineTalkRoomConfig(source_id);
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
+  public void clearCandidateDate(String sourceId) {
+    mOfyRepository.deleteLineTalkRoomConfig(sourceId);
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(sourceId);
     if (config == null) {
       return;
     }
