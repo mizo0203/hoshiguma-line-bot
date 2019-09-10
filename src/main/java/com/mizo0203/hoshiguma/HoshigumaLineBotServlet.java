@@ -74,7 +74,7 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       // ボットアプリのサーバーに webhook から送信される HTTP POST リクエストには、ステータスコード 200 を返す必要があります。
       // https://developers.line.me/ja/docs/messaging-api/reference/#anchor-99cdae5b4b38ad4b86a137b508fd7b1b861e2366
       resp.setStatus(HttpServletResponse.SC_OK);
-      mUseCase.destroy();
+      mUseCase.close();
     }
   }
 
@@ -133,15 +133,6 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       case "data2":
         {
           MessageObject[] messages = new MessageObject[1];
-          messages[0] = createReminderMessageData();
-          mRepository.replyMessage(event.getReplyToken(), messages);
-          break;
-        }
-      case "data21":
-        {
-          Date date = event.getPostBackParams().parseDatetime();
-          mRepository.enqueueReminderTask(event.getSource(), date.getTime());
-          MessageObject[] messages = new MessageObject[1];
           messages[0] = createCloseMessageData();
           mRepository.replyMessage(event.getReplyToken(), messages);
           break;
@@ -149,8 +140,10 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       case "data22":
         {
           Date date = event.getPostBackParams().parseDatetime();
+          mRepository.enqueueReminderTask(
+              event.getSource(), date.getTime() - 10000); // TODO: 10 sec
           mRepository.enqueueCloseTask(event.getSource(), date.getTime());
-          mUseCase.replyCandidateDates(event.getSource().getSourceId(), event.getReplyToken());
+          mUseCase.replyCandidateDates(event.getReplyToken());
           break;
         }
       case "data3":
@@ -161,7 +154,7 @@ public class HoshigumaLineBotServlet extends HttpServlet {
           break;
         }
       case "data4":
-        {
+        { // TODO
           MessageObject[] messages = new MessageObject[1];
           StringBuilder text = new StringBuilder("了解だ！");
           for (String candidate_date :
@@ -173,13 +166,13 @@ public class HoshigumaLineBotServlet extends HttpServlet {
           break;
         }
       case "data5":
-        {
+        { // TODO
           mRepository.addMemberCandidateDate(
               event.getSource(), new Date(Long.parseLong(postBackData[1])));
           break;
         }
       case "data6":
-        {
+        { // TODO
           mRepository.removeMemberCandidateDate(
               event.getSource(), new Date(Long.parseLong(postBackData[1])));
           break;
@@ -187,13 +180,6 @@ public class HoshigumaLineBotServlet extends HttpServlet {
       default:
         break;
     }
-  }
-
-  private MessageObject createReminderMessageData() {
-    Action[] actions = new Action[1];
-    actions[0] = new DateTimePickerAction("data21", Mode.DATE_TIME).label("リマインダーをセット");
-    Template template = new ButtonTemplate("リマインダーをセットしてくれ！", actions);
-    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
   }
 
   private MessageObject createCloseMessageData() {
