@@ -8,6 +8,7 @@ import com.mizo0203.hoshiguma.repo.objectify.entity.KeyEntity;
 import com.mizo0203.hoshiguma.repo.objectify.entity.LineTalkRoomConfig;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -57,9 +58,15 @@ public class Repository {
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
+  public void addCandidateDate(String source_id, Date candidateDate) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source_id);
+    config.candidate_dates.add(candidateDate);
+    mOfyRepository.saveLineTalkRoomConfig(config);
+  }
+
   public Date[] getCandidateDates(String source_id) {
     LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source_id);
-    return config.candidate_dates.toArray(new Date[config.candidate_dates.size()]);
+    return config.candidate_dates.toArray(new Date[0]);
   }
 
   public String[] getCandidateDateStrings(SourceData source) {
@@ -187,11 +194,24 @@ public class Repository {
     mOfyRepository.saveLineTalkRoomConfig(config);
   }
 
-  public String[] getMemberCandidateDateStrings(SourceData source) {
-    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source.getSourceId());
+  public void setMemberCandidateDate(String source_id, String userId, Date[] candidateDates) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source_id);
     SortedSet<Date> member_candidate_dates =
-        config.member_candidate_dates.computeIfAbsent(source.getUserId(), k -> new TreeSet<>());
-    Date[] candidateDates = member_candidate_dates.toArray(new Date[member_candidate_dates.size()]);
+        config.member_candidate_dates.computeIfAbsent(userId, k -> new TreeSet<>());
+    member_candidate_dates.clear();
+    member_candidate_dates.addAll(Arrays.asList(candidateDates));
+    mOfyRepository.saveLineTalkRoomConfig(config);
+  }
+
+  public String[] getMemberCandidateDateStrings(SourceData source) {
+    return getMemberCandidateDateStrings(source.getSourceId(), source.getUserId());
+  }
+
+  public String[] getMemberCandidateDateStrings(String source_id, String userId) {
+    LineTalkRoomConfig config = getOrCreateLineTalkRoomConfig(source_id);
+    SortedSet<Date> member_candidate_dates =
+        config.member_candidate_dates.computeIfAbsent(userId, k -> new TreeSet<>());
+    Date[] candidateDates = member_candidate_dates.toArray(new Date[0]);
     String[] ret = new String[candidateDates.length];
     for (int i = 0; i < ret.length; i++) {
       ret[i] = mTranslator.formatDate(candidateDates[i]);

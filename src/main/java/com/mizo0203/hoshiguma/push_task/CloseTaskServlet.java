@@ -35,7 +35,7 @@ public class CloseTaskServlet extends HttpServlet {
       LOG.info("CloseTaskServlet is processing " + source_id);
       mUseCase.closeCandidateDates(source_id);
     } finally {
-      mUseCase.destroy();
+      mUseCase.close();
     }
   }
 }

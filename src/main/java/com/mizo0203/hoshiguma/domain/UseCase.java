@@ -1,19 +1,25 @@
 package com.mizo0203.hoshiguma.domain;
 
+import com.mizo0203.hoshiguma.ContentServlet;
 import com.mizo0203.hoshiguma.repo.Repository;
+import com.mizo0203.hoshiguma.repo.liff.data.Member;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.TemplateMessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.TextMessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.Action;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.DateTimePickerAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.action.PostBackAction;
+import com.mizo0203.hoshiguma.repo.line.messaging.data.action.UriAction;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.ButtonTemplate;
-import com.mizo0203.hoshiguma.repo.line.messaging.data.template.CarouselTemplate;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.logging.Logger;
 
-public class UseCase {
+public class UseCase implements AutoCloseable {
+  private static final Logger LOG = Logger.getLogger(ContentServlet.class.getName());
   private final Repository mRepository;
   private final Translator mTranslator;
 
@@ -28,26 +34,27 @@ public class UseCase {
     mTranslator = new Translator();
   }
 
-  public void destroy() {
+  @Override
+  public void close() {
     mRepository.destroy();
   }
 
   /** 日程調整を送信する */
-  public void replyCandidateDates(String source_id, String replyToken) {
-    MessageObject[] messages = new MessageObject[3];
-    messages[0] = new TextMessageObject("了解だ！\n皆は出欠を入力してくれ！");
-    messages[1] = createCarouselTemplate(source_id);
-    messages[2] = createInputCompletedMessageData();
-    mRepository.replyMessage(replyToken, messages);
+  public void replyCandidateDates(String replyToken) {
+    mRepository.replyMessage(
+        replyToken,
+        new MessageObject[] {
+          createInputCompletedMessageData("了解だ！\n皆は出欠を入力してくれ！"),
+        });
   }
 
   /** 日程調整のリマインダーを送信する */
   public void remindCandidateDates(String source_id) {
-    MessageObject[] messages = new MessageObject[3];
-    messages[0] = new TextMessageObject("リマインダーだ！\nもし、出欠入力がまだなら入力してくれ！");
-    messages[1] = createCarouselTemplate(source_id);
-    messages[2] = createInputCompletedMessageData();
-    mRepository.pushMessage(source_id, messages);
+    mRepository.pushMessage(
+        source_id,
+        new MessageObject[] {
+          createInputCompletedMessageData("リマインダーだ！\nもし、出欠入力がまだなら入力してくれ！"),
+        });
   }
 
   /** 日程調整を締め切る */
@@ -57,26 +64,14 @@ public class UseCase {
     mRepository.pushMessage(source_id, messages);
   }
 
-  private MessageObject createCarouselTemplate(String source_id) {
-    Date[] candidateDates = mRepository.getCandidateDates(source_id);
-    CarouselTemplate.ColumnObject[] columns =
-        new CarouselTemplate.ColumnObject[candidateDates.length];
-    for (int i = 0; i < columns.length; i++) {
-      Action[] actions = new Action[2];
-      actions[0] = new PostBackAction("data5\n" + candidateDates[i].getTime()).label("出席");
-      actions[1] = new PostBackAction("data6\n" + candidateDates[i].getTime()).label("欠席");
-      columns[i] =
-          new CarouselTemplate.ColumnObject(mTranslator.formatDate(candidateDates[i]), actions);
-    }
-    Template template = new CarouselTemplate(columns);
-    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
-  }
-
-  private MessageObject createInputCompletedMessageData() {
-    Action[] actions = new Action[1];
-    actions[0] = new PostBackAction("data4").label("入力完了");
-    Template template = new ButtonTemplate("最後に「入力完了」を押してくれ", actions);
-    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
+  private MessageObject createInputCompletedMessageData(String text) {
+    Template template =
+        new ButtonTemplate(
+            text,
+            new Action[] {
+              new UriAction("出欠入力フォームを起動", "line://app/1553006014-OJKlWjqN"),
+            });
+    return new TemplateMessageObject("新しいメッセージを確認してくれ！", template);
   }
 
   public void replyRequestAdditionCandidateDateMessage(String replyToken, String text) {
@@ -95,10 +90,43 @@ public class UseCase {
     actions[1] = new PostBackAction("data2").label("候補日時の編集を完了");
     actions[2] = new PostBackAction("data3").label("候補日時をクリア");
     Template template = new ButtonTemplate(text, actions);
-    return new TemplateMessageObject("テンプレートメッセージはiOS版およびAndroid版のLINE 6.7.0以降で対応しています。", template);
+    return new TemplateMessageObject("新しいメッセージを確認してくれ！", template);
   }
 
   public void clearCandidateDate(String sourceId) {
     mRepository.clearCandidateDate(sourceId);
+  }
+
+  public String[] getCandidateDates(String source_id) {
+    //        mRepository.addCandidateDate(source_id, new Date());
+    return new ArrayList<String>() {
+      {
+        for (Date date : mRepository.getCandidateDates(source_id)) {
+          add(mTranslator.formatDate(date));
+        }
+      }
+    }.toArray(new String[0]);
+  }
+
+  public void submitAnswer(
+      String groupId, String userId, String displayName, List<Member.Answer> answer) {
+    List<Date> candidateDatesList = new ArrayList<>();
+    Date[] candidateDates = mRepository.getCandidateDates(groupId);
+    for (int i = 0; i < answer.size(); i++) {
+      if (answer.get(i).equals(Member.Answer.attendance)
+          || answer.get(i).equals(Member.Answer.late)) {
+        candidateDatesList.add(candidateDates[i]);
+      }
+    }
+    mRepository.setMemberCandidateDate(groupId, userId, candidateDatesList.toArray(new Date[0]));
+    StringBuilder text = new StringBuilder(displayName + " さんが入力しました！");
+    for (String candidate_date : mRepository.getMemberCandidateDateStrings(groupId, userId)) {
+      text.append("\n").append(candidate_date);
+    }
+    MessageObject[] messages =
+        new MessageObject[] {
+          new TextMessageObject(text.toString()),
+        };
+    mRepository.pushMessage(groupId, messages);
   }
 }

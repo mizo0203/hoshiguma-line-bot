@@ -35,7 +35,7 @@ public class ReminderTaskServlet extends HttpServlet {
       LOG.info("ReminderTaskServlet is processing " + source_id);
       mUseCase.remindCandidateDates(source_id);
     } finally {
-      mUseCase.destroy();
+      mUseCase.close();
     }
   }
 }
