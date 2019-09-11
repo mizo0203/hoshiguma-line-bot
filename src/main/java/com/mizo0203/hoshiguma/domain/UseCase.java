@@ -2,6 +2,7 @@ package com.mizo0203.hoshiguma.domain;
 
 import com.mizo0203.hoshiguma.ContentServlet;
 import com.mizo0203.hoshiguma.repo.Repository;
+import com.mizo0203.hoshiguma.repo.liff.data.CandidateDates;
 import com.mizo0203.hoshiguma.repo.liff.data.Member;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.MessageObject;
 import com.mizo0203.hoshiguma.repo.line.messaging.data.TemplateMessageObject;
@@ -16,6 +17,7 @@ import com.mizo0203.hoshiguma.repo.line.messaging.data.template.Template;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 public class UseCase implements AutoCloseable {
@@ -97,30 +99,24 @@ public class UseCase implements AutoCloseable {
     mRepository.clearCandidateDate(sourceId);
   }
 
-  public String[] getCandidateDates(String source_id) {
+  public CandidateDates getCandidateDates(String source_id) {
     //        mRepository.addCandidateDate(source_id, new Date());
-    return new ArrayList<String>() {
-      {
-        for (Date date : mRepository.getCandidateDates(source_id)) {
-          add(mTranslator.formatDate(date));
-        }
-      }
-    }.toArray(new String[0]);
+    return new CandidateDates(mRepository.getCandidateDates(source_id));
   }
 
   public void submitAnswer(
-      String groupId, String userId, String displayName, List<Member.Answer> answer) {
+      String groupId, String userId, String displayName, Map<Long, Member.Answer> answer) {
     List<Date> candidateDatesList = new ArrayList<>();
-    Date[] candidateDates = mRepository.getCandidateDates(groupId);
-    for (int i = 0; i < answer.size(); i++) {
-      if (answer.get(i).equals(Member.Answer.attendance)
-          || answer.get(i).equals(Member.Answer.late)) {
-        candidateDatesList.add(candidateDates[i]);
+    for (long dateNum : answer.keySet()) {
+      if (answer.get(dateNum).equals(Member.Answer.attendance)
+          || answer.get(dateNum).equals(Member.Answer.late)) {
+        candidateDatesList.add(new Date(dateNum));
       }
     }
     mRepository.setMemberCandidateDate(groupId, userId, candidateDatesList.toArray(new Date[0]));
     StringBuilder text = new StringBuilder(displayName + " さんが入力しました！");
     for (String candidate_date : mRepository.getMemberCandidateDateStrings(groupId, userId)) {
+      LOG.info("candidate_date: " + candidate_date);
       text.append("\n").append(candidate_date);
     }
     MessageObject[] messages =

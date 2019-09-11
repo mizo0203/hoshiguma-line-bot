@@ -21,10 +21,10 @@ public class ContentServlet extends HttpServlet {
     try (UseCase useCase = new UseCase()) {
       GroupId groupId = new Gson().fromJson(req.getReader(), GroupId.class);
       LOG.info("groupId: " + groupId.groupId);
-      String[] candidateDates = useCase.getCandidateDates(groupId.groupId);
+      CandidateDates candidateDates = useCase.getCandidateDates(groupId.groupId);
       resp.setContentType("application/json");
       resp.setCharacterEncoding(StandardCharsets.UTF_8.name());
-      String x = new Gson().toJson(new CandidateDates(candidateDates));
+      String x = new Gson().toJson(candidateDates);
       LOG.info("resp: " + x);
       resp.getWriter().println(x);
     }

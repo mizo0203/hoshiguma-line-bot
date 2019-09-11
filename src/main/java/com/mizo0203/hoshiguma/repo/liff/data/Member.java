@@ -16,6 +16,17 @@ public class Member {
   public final Answer c8;
   public final Answer c9;
   public final Answer c10;
+  public final long d0;
+  public final long d1;
+  public final long d2;
+  public final long d3;
+  public final long d4;
+  public final long d5;
+  public final long d6;
+  public final long d7;
+  public final long d8;
+  public final long d9;
+  public final long d10;
 
   public Member(
       String groupId,
@@ -30,7 +41,18 @@ public class Member {
       Answer c7,
       Answer c8,
       Answer c9,
-      Answer c10) {
+      Answer c10,
+      long d0,
+      long d1,
+      long d2,
+      long d3,
+      long d4,
+      long d5,
+      long d6,
+      long d7,
+      long d8,
+      long d9,
+      long d10) {
     this.groupId = groupId;
     this.displayName = displayName;
     this.c0 = c0;
@@ -44,6 +66,17 @@ public class Member {
     this.c8 = c8;
     this.c9 = c9;
     this.c10 = c10;
+    this.d0 = d0;
+    this.d1 = d1;
+    this.d2 = d2;
+    this.d3 = d3;
+    this.d4 = d4;
+    this.d5 = d5;
+    this.d6 = d6;
+    this.d7 = d7;
+    this.d8 = d8;
+    this.d9 = d9;
+    this.d10 = d10;
   }
 
   public enum Answer {

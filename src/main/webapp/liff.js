@@ -96,12 +96,13 @@ function sampleAjax(groupId, userId, displayName) {
             text += '<tbody>';
             for (let i = 0; i < response['candidateDates'].length; i++) {
                 text += '<tr>';
-                text += '<th>' + response['candidateDates'][i] + '</th>';
+                text += '<th>' + response['candidateDates'][i]['dateStr'] + '</th>';
                 text += '<td style="text-align: center;"><input type="radio" name="c' + i + '" value="attendance" /></td>';
                 text += '<td style="text-align: center;"><input type="radio" name="c' + i + '" value="late" /></td>';
                 text += '<td style="text-align: center;"><input type="radio" name="c' + i + '" value="absent" /></td>';
                 text += '<td style="text-align: center;"><input type="radio" name="c' + i + '" value="checking" checked /></td>';
                 text += '</tr>';
+                text += '<input type="hidden" name="d' + i + '" value="' + response['candidateDates'][i]['dateNum'] + '">';
             }
             text += '</tbody></table>';
             text += '<input type="hidden" name="groupId" value="' + groupId + '">';
