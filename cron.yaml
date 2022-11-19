@@ -1,0 +1,9 @@
+cron:
+  - description: "schedule_adjustment_completion_date"
+    url: /notify/schedule_adjustment_completion_date
+    schedule: 1st wednesday of month 11:45
+    timezone: Asia/Tokyo
+  - description: "schedule_adjustment_finalizing"
+    url: /notify/schedule_adjustment_finalizing
+    schedule: 1st wednesday of month 20:00
+    timezone: Asia/Tokyo

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Among Us 日程調整</title>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+  <section class="section">
+    <div class="container is-max-desktop">
+      <h1 style="text-align:center;" class="title is-1">Among Us</h1>
+
+      {% if candidate_dates %}
+
+      <h2 style="text-align:center;" class="subtitle is-2">開催時間</h2>
+      <h3 style="text-align:center;" class="subtitle is-3">月 1 回 <span style="color:blue;">土曜日</span> 20:00 - 23:00</h3>
+      <h4 style="text-align:center;" class="subtitle is-4">※ 途中退席可</h4>
+      <h2 style="text-align:center;" class="subtitle is-2">開催日希望調査</h2>
+      <form action="/table" method="post">
+        <table class="table is-narrow" style="width: auto; margin-right: auto; margin-left: auto;">
+          <thead id="thead_candidate_days">
+            <tr>
+              <th style="text-align:center; font-size: 90%;">名前</th>
+              {% for candidate_date in candidate_dates %}
+              <th style="text-align:center; font-size: 90%;">{{ candidate_date }} (<span style="color:blue;">土</span>)
+              </th>
+              {% endfor %}
+            </tr>
+            {% for participant in participants %}
+            <tr>
+              <td style="text-align:center;"><a href="javascript:edit({{url_encode(participant)}});">{{
+                  participant['name'] }}</a></td>
+              {% for available_day in participant['available_days'] %}
+              {% if available_day == 1 %}
+              <td style="text-align:center; font-weight: bold; color:green;">✓</td>
+              {% elif available_day == 0 %}
+              <td style="text-align:center; font-weight: bold; color:red;">？</td>
+              {% else %}
+              <td style="text-align:center; font-weight: bold;"></td>
+              {% endif %}
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </thead>
+          <tbody id="tbody_candidate_days">
+            <tr>
+              <th style="text-align:center; font-size: 90%;">出欠</th>
+              {% for candidate_date in candidate_dates %}
+              <th style="text-align:center; font-size: 90%;">{{ candidate_date }} (<span style="color:blue;">土</span>)
+              </th>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td style="text-align:center; position:relative; padding: 0; font-weight: bold; color:green;">参加 ✓</td>
+              {% for num in range(4) %}
+              <td style="text-align:center; padding: 0;"><input type="radio" id="radio_{{num}}_0" name="radio_{{num}}"
+                  value="1" checked>
+                <label for="radio_{{num}}_0">{{ votes[num][0] }}</label>
+              </td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td style="text-align:center; position:relative; padding: 0; font-weight: bold; color:red;">未定 ？</td>
+              {% for num in range(4) %}
+              <td style="text-align:center; padding: 0;"><input type="radio" id="radio_{{num}}_1" name="radio_{{num}}"
+                  value="0">
+                <label for="radio_{{num}}_1">{{ votes[num][1] }}</label>
+              </td>
+              {% endfor %}
+            </tr>
+            <tr>
+              <td style="text-align:center; position:relative; padding: 0; font-weight: bold;">不参加</td>
+              {% for num in range(4) %}
+              <td style="text-align:center; padding: 0;"><input type="radio" id="radio_{{num}}_2" name="radio_{{num}}"
+                  value="-1">
+                <label for="radio_{{num}}_2">{{ votes[num][2] }}</label>
+              </td>
+              {% endfor %}
+            </tr>
+          </tbody>
+          <tfoot id="tfoot_candidate_days">
+            <tr>
+              <td style="position:relative; padding: 0;"><input class="form-control form-control-sm" id="name"
+                  name="name" placeholder="名前（必須）" size="8" type="text" style="width:100%; box-sizing:border-box"
+                  required=""></td>
+              <td colspan="4" align="right" style="padding: 0;">
+                <input class="form-control form-control-sm" id="comment" name="comment" placeholder="一言"
+                  style="width:100%; box-sizing:border-box" type="text">
+              </td>
+            </tr>
+            <tr>
+              <td colspan="5" align="right" style="padding: 0;">
+                <input class="button is-small is-link" type="submit">
+                <input class="button is-small is-link is-light" type="reset">
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </form>
+
+      {% else %}
+
+      <h2 style="text-align:center;" class="subtitle is-2">開催日時</h2>
+      <h3 style="text-align:center;" class="subtitle is-3">{{ as_tokyo_time(event['timestamp']) }} (<span
+          style="color:blue;">土</span>) 20:00 - 23:00</h3>
+      <h4 style="text-align:center;" class="subtitle is-4">※ 途中退席可</h4>
+      <h2 style="text-align:center;" class="subtitle is-2">参加表明</h2>
+      <table class="table is-narrow" style="width: auto; margin-right: auto; margin-left: auto;">
+        <thead>
+          <tr>
+            <th>名前</th>
+            <th colspan="2">一言</th>
+          </tr>
+        </thead>
+        <tbody id="table_participants">
+          {% for participant in event['participants'] %}
+          <tr>
+            <td>
+              <a href="javascript:edit({{url_encode(participant)}});">{{ participant['name'] }}</a>
+            </td>
+            <td style="text-align: left;">{{ participant['comment'] }}</td>
+            <td style="padding: 0; text-align: right;">
+              <form action="/cancel_participation" method="post"
+                onsubmit="return window.confirm(`{{ participant['name'] }} さんの参加を取り消してよいですか？`)">
+                <input type="hidden" name="name" value="{{ participant['name'] }}">
+                <input class="button is-small is-danger" type="submit" value="取消">
+              </form>
+              <script>
+                console.log();
+              </script>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot id="tfoot_candidate_days">
+          <form action="/apply_participation" method="post">
+            <tr>
+              <td style="position:relative; padding: 0;"><input class="form-control form-control-sm" id="name"
+                  name="name" placeholder="名前（必須）" size="8" type="text" style="width:100%; box-sizing:border-box"
+                  required=""></td>
+              <td colspan="2" align="right" style="padding: 0;">
+                <input class="form-control form-control-sm" id="comment" name="comment" placeholder="一言"
+                  style="width:100%; box-sizing:border-box" type="text">
+              </td>
+            </tr>
+            <tr>
+              <td colspan="3" align="right" style="padding: 0;">
+                <p style="display: inline; margin-right: auto; margin-left: auto;">こちらに参加宣言してください！</p>
+                <input class="button is-small is-link" type="submit">
+                <input class="button is-small is-link is-light" type="reset">
+              </td>
+            </tr>
+          </form>
+        </tfoot>
+      </table>
+
+      {% endif %}
+
+      <h2 style="text-align:center;" class="subtitle is-2">Webcal</h2>
+      <p style="text-align:center;"><a href="webcal://{{ request.host }}{{ url_for('events') }}">webcal</a></p>
+    </div>
+  </section>
+
+</body>
+
+</html>
