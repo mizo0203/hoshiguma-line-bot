@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-runtime: python39
+# Python 3.10 runs on Ubuntu 22.04
+# https://cloud.google.com/appengine/docs/standard/python3/runtime
+runtime: python310
 
 handlers:
   # This configures Google App Engine to serve the files in the app's static
