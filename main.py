@@ -123,7 +123,7 @@ def warmup():
     return "", 200, {}
 
 
-@app.route("/notify/schedule_approached", methods=["GET", "POST"])
+@app.route("/notify/schedule_approached", methods=["GET"])
 def schedule_approached():
     """開催当日 15 分前"""
     notify_info = store.load(
@@ -138,9 +138,10 @@ def schedule_approached():
     return line.notify(notify_info["line_notify_access_token"], "開戦 15 分前です。")
 
 
-@app.route("/notify/schedule_adjustment_starting", methods=["GET", "POST"])
-def schedule_adjustment_starting():
-    """開催当日 22:00 次回日程調整開始"""
+@app.route("/notify/schedule_adjustment_started", methods=["GET"])
+def schedule_adjustment_started():
+    """開催当日 22:00 次回日程調整開始済みをお知らせ"""
+
     from sub import get_candidate_dates, get_day_of_first_wed
 
     first_wed_date = get_day_of_first_wed()
@@ -155,14 +156,6 @@ def schedule_adjustment_starting():
     candidate_dates = get_candidate_dates(first_wed_date)
     store.save("candidate_dates", candidate_dates)
     print(f"Received task with payload: {candidate_dates}")
-    return f"Received task with payload: {candidate_dates}"
-
-
-@app.route("/notify/schedule_adjustment_started", methods=["GET", "POST"])
-def schedule_adjustment_started():
-    """開催当日 23:00 終了時間 & 次回日程調整開始済みをお知らせ"""
-
-    from sub import get_day_of_first_wed
 
     notify_info = store.load(
         "notify_info",
@@ -184,7 +177,7 @@ def schedule_adjustment_started():
     )
 
 
-@app.route("/notify/schedule_adjustment_completion_date", methods=["GET", "POST"])
+@app.route("/notify/schedule_adjustment_completion_date", methods=["GET"])
 def schedule_adjustment_completion_date():
     """日程調整完了日を 11:45 にお知らせする"""
     notify_info = store.load(
@@ -207,7 +200,7 @@ def schedule_adjustment_completion_date():
     )
 
 
-@app.route("/notify/schedule_adjustment_finalizing", methods=["GET", "POST"])
+@app.route("/notify/schedule_adjustment_finalizing", methods=["GET"])
 def schedule_adjustment_finalizing():
     """
     20:00 に日程調整完了させ

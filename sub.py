@@ -73,7 +73,7 @@ def create_task(dt, relative_uri, queue_path):
     # Add the timestamp to the tasks.
     task = {
         "app_engine_http_request": {  # Specify the type of request.
-            "http_method": tasks_v2.HttpMethod.POST,
+            "http_method": tasks_v2.HttpMethod.GET,
             "relative_uri": relative_uri,
         },
         "schedule_time": timestamp,
@@ -98,11 +98,6 @@ def create_task_2(new_event, queue_path):
     )
     create_task(
         (new_event["timestamp"] + timedelta(hours=2)),
-        "/notify/schedule_adjustment_starting",
-        queue_path,
-    )
-    create_task(
-        (new_event["timestamp"] + timedelta(hours=3)),
         "/notify/schedule_adjustment_started",
         queue_path,
     )
