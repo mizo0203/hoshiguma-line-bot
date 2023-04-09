@@ -8,5 +8,8 @@
     "editor.codeActionsOnSave": {
         "source.organizeImports": true
     },
-    "python.linting.mypyEnabled": true
+    "python.linting.mypyEnabled": false,
+    "python.linting.pylintEnabled": false,
+    "python.linting.enabled": true,
+    "files.autoSave": "afterDelay"
 }

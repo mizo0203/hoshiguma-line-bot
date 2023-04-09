@@ -22,6 +22,8 @@ from google.cloud import datastore
 
 import datastore as store
 import line
+import shortuuid
+import uuid
 
 # from create_app_engine_queue_task import get_day_of_first_wed
 from sub import (
@@ -49,11 +51,32 @@ app.jinja_env.globals["as_tokyo_time"] = lambda d: as_tokyo_time(d)
 
 @app.route("/")
 def root():
+    return render_template(
+        "index.html",
+    )
+
+
+@app.route("/event/<string:event_id>")
+def event(event_id):
+    print("User %s" % event_id)
+    return render_template(
+        "event.html",
+        event_id=event_id,
+    )
+
+
+@app.route("/create_event", methods=["POST"])
+def create_event():
+    return redirect(url_for("event", event_id=shortuuid.encode(uuid.uuid4())))
+
+
+@app.route("/schedule_adjustment")
+def schedule_adjustment():
     participants = store.load("participants", [])
     candidate_dates: list = store.load("candidate_dates", [])
     event_list = store.load("event_list", get_event_list_def())
     return render_template(
-        "index.html",
+        "schedule_adjustment.html",
         participants=participants,
         votes=votes(participants),
         candidate_dates=list(map(as_tokyo_time, candidate_dates)),
@@ -73,7 +96,7 @@ def table():
     participants = store.load("participants", [])
     candidate_dates: list = store.load("candidate_dates", [])
     if not candidate_dates:
-        return redirect(url_for("root"))  # TODO: エラー処理
+        return redirect(url_for("schedule_adjustment"))  # TODO: エラー処理
     participant_new = square2(request.form)
     for i, participant in enumerate(participants):
         if participant["name"] == participant_new["name"]:
@@ -82,7 +105,7 @@ def table():
     else:
         participants.append(participant_new)
     store.save("participants", participants)
-    return redirect(url_for("root"))
+    return redirect(url_for("schedule_adjustment"))
 
 
 @app.route("/apply_participation", methods=["POST"])
@@ -90,7 +113,7 @@ def apply_participation():
     candidate_dates: list = store.load("candidate_dates", [])
     event_list = store.load("event_list", get_event_list_def())
     if candidate_dates:
-        return redirect(url_for("root"))  # TODO: エラー処理
+        return redirect(url_for("schedule_adjustment"))  # TODO: エラー処理
     participant_new = square3(request.form)
     for i, participant in enumerate(event_list[-1]["participants"]):
         if participant["name"] == participant_new["name"]:
@@ -99,7 +122,7 @@ def apply_participation():
     else:
         event_list[-1]["participants"].append(participant_new)
     store.save("event_list", event_list)
-    return redirect(url_for("root"))
+    return redirect(url_for("schedule_adjustment"))
 
 
 @app.route("/cancel_participation", methods=["POST"])
@@ -107,14 +130,14 @@ def cancel_participation():
     candidate_dates: list = store.load("candidate_dates", [])
     event_list = store.load("event_list", get_event_list_def())
     if candidate_dates:
-        return redirect(url_for("root"))  # TODO: エラー処理
+        return redirect(url_for("schedule_adjustment"))  # TODO: エラー処理
     name = request.form["name"].strip()[:5]
     for i, participant in enumerate(event_list[-1]["participants"]):
         if participant["name"] == name:
             event_list[-1]["participants"].pop(i)
             break
     store.save("event_list", event_list)
-    return redirect(url_for("root"))
+    return redirect(url_for("schedule_adjustment"))
 
 
 @app.route("/_ah/warmup")

@@ -7,3 +7,4 @@ mypy
 python-dateutil
 google-cloud-tasks
 requests
+shortuuid
